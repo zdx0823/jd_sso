@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>个人注册</title>
   <link rel="stylesheet" href="{{mix('css/regiest.css')}}">
-  <script src="./js/jQuery v3.5.1.js"></script>
 </head>
 <body>
   
@@ -31,16 +31,17 @@
       <div class="w-full h-full md:w-9/12 mx-auto flex-1">
         
         {{-- 表单 --}}
-        <div class="h-full md:w-4/12 mx-auto flex items-center">
+        <form id="form" class="h-full md:w-4/12 mx-auto flex items-center" method="post" action="/store">
         
           <div class="w-full">
-            <x-input type="user"  placeholder="请输入用户名" class="mb-4" />
-            <x-input type="email" placeholder="请输入邮箱" class="mb-4" />
-            <x-input type="password" placeholder="请输入密码" class="mb-4" />
-            <x-button type="danger" value="提交" class="w-full h-10" />
+            <x-input type="text" rule="username" placeholder="请输入用户名" class="mb-4" jshook="username" />
+            <x-input type="email" rule="email" placeholder="请输入邮箱" class="mb-4" jshook="email" />
+            <x-input type="password" rule="password" placeholder="请输入密码" class="mb-4" jshook="password" />
+            <x-button type="danger" isSubmit value="提交" class="w-full h-10" />
           </div>
 
-        </div>
+          @csrf
+        </form>
 
       </div>
     </div>
@@ -68,5 +69,8 @@
 
   </div>
 
+<script src="{{mix('js/manifest.js')}}"></script>
+<script src="{{mix('js/vendor.js')}}"></script>
+<script src="{{mix('js/regiest.js')}}"></script>
 </body>
 </html>

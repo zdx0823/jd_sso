@@ -11,6 +11,8 @@ class Button extends Component
     public $focusBgColor;
     public $value;
     public $class;
+    public $type;
+    public $isSubmit;
 
     private $bgColorMap = [
         'primary' => 'bg-blue-500',
@@ -26,7 +28,12 @@ class Button extends Component
         'info' => 'focus:bg-gray-600 focus:bg-gray-700',
     ];
 
-    public function __construct($type = 'primary', $value = "按钮", $class = '')
+    public function __construct(
+        $type = 'primary',
+        $value = "按钮",
+        $class = '',
+        $isSubmit = false
+    )
     {
         $this->bgColor = array_key_exists($type, $this->bgColorMap)
             ? $this->bgColorMap[$type]
@@ -38,6 +45,8 @@ class Button extends Component
 
         $this->value = $value;
         $this->class = $class;
+
+        $this->isSubmit = $isSubmit;
     }
 
     /**

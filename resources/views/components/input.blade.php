@@ -19,21 +19,26 @@
     </div>
 
     <input 
+
       type="{{$type}}"
+      name="{{$name}}"
       placeholder="{{$placeholder}}"
+      rule="{{$rule}}"
+      jshook="{{$jshook}}"
+
       class="
         flex-1
         h-full
         box-border
         px-4 
-        focus:text-gray-800
-          focus:outline-none
+      focus:text-gray-800
+        focus:outline-none
       "
     >
 
   </div>
   <p class="hidden text-sm text-red-600 px-3 w-full truncate">
     <i class="iconfont iconjinggao1 relative" style="top: 1px"></i>
-    邮箱格式错误
+    <span>邮箱格式错误</span>
   </p>
 </div>

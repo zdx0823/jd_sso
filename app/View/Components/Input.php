@@ -8,7 +8,7 @@ class Input extends Component
 {
 
     private $iconMap = [
-        'user' => 'iconyonghu',
+        'name' => 'iconyonghu',
         'email' => 'iconemail',
         'password' => 'iconicon2',
     ];
@@ -17,16 +17,29 @@ class Input extends Component
     public $placeholder;
     public $class;
     public $icon;
+    public $name;
+    public $rule;
+    public $jshook;
 
-    public function __construct($type = 'user', $placeholder = '', $class = '')
+    public function __construct(
+        $class = '',
+        $placeholder = '',
+        $type = 'name',
+        $name = "default",
+        $rule = '',
+        $jshook = ''
+    )
     {
         $this->placeholder = $placeholder;
         $this->icon = array_key_exists($type, $this->iconMap)
             ? $this->iconMap[$type]
-            : $this->iconMap['user'];
+            : $this->iconMap['name'];
 
         $this->type = $type;
         $this->class = $class;
+        $this->name = $name;
+        $this->rule = $rule;
+        $this->jshook = $jshook;
     }
 
     /**
