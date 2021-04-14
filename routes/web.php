@@ -1,5 +1,5 @@
 <?php
 
 Route::get('/', function () {
-    return '初始化';
+    return view('regiest');
 });
