@@ -27,7 +27,7 @@
             "Database\\Seeders\\": "database/seeders/"
         },
         "classmap": [
-            "app/jdsso"
+            "app/custom"
         ]
     },
     "autoload-dev": {

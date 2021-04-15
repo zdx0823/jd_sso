@@ -20,7 +20,7 @@ class User extends Authenticatable
     protected $dateFormat = 'U';
 
     protected $fillable = [
-        'name',
+        'username',
         'email',
         'password',
         'email_verified_at'
@@ -29,5 +29,22 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
     ];
+
+    // 自定义字段
+    protected $appends = ['isEmailTimeout'];
+
+    // 3天未认证，则失效
+    private $emailVerifiedTimeout = 60 * 60 * 24 * 3;
+
+    // 邮箱未认证，是否已超出验证时效  getTypeAttribute
+    public function getIsEmailTimeoutAttribute () {
+        return true;
+        // return (time() - $this->ctime) > $emailVerifiedTimeout;
+    }
+
+    // 邮箱是否已验证
+    public function getIsVerifiedAttribute () {
+        return $this->email_verified_at > 0;
+    }
 
 }

@@ -86,6 +86,8 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()(function () {
           msg = _util$deJson.msg,
           realMsg = _util$deJson.realMsg;
 
+      return;
+
       if (status == -1) {
         _util__WEBPACK_IMPORTED_MODULE_3__.default.toast(msg, 'danger');
         return;

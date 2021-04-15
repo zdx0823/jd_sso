@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use App\Jdsso\Common\JdssoCommon;
+use App\Custom\Common\CustomCommon;
 
 class CheckParams
 {
@@ -31,7 +31,7 @@ class CheckParams
         }
         $str = rtrim($str, '\n');
 
-        $result = JdssoCommon::makeErrRes($str, $msgArr);
+        $result = CustomCommon::makeErrRes($str, $msgArr);
         return $result;
     }
 

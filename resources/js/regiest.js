@@ -88,6 +88,8 @@ $(() => {
     }).then((res) => {
       
       const {status, msg, realMsg} = util.deJson(res)
+      
+      return;
       if (status == -1) {
         util.toast(msg, 'danger')
         return

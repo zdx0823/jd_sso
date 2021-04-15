@@ -1,9 +1,9 @@
 <?php
-namespace App\Jdsso\Common;
+namespace App\Custom\Common;
 
 use Illuminate\Support\Facades\Validator;
 
-class JdssoCommon {
+class CustomCommon {
 
   /**
    * 返回失败的结果，$realMsg提示语，默认为空；$msgArr提示语数组，$data数据。
