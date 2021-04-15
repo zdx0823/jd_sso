@@ -29,6 +29,7 @@ $(() => {
     let email = $form.find('[jshook=email]').val()
     let password = $form.find('[jshook=password]').val()
     
+    isSendEmail = true
     $.post('/store', {
       username,
       email: util.encrypt(email),
@@ -37,13 +38,13 @@ $(() => {
       
       const {status, msg, realMsg} = util.deJson(res)
       
-      return;
       if (status == -1) {
-        util.toast(msg, 'danger')
+        util.toast(realMsg, 'danger')
+        isSendEmail = false
         return
       }
 
-      util.toast(realMsg, 'success')
+      util.toast(msg, 'success')
 
       // 申请成功，锁定表单，提示用户去看邮件
       $form.find('[jshook=formShade]').show()

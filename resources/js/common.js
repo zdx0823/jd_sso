@@ -46,7 +46,7 @@ function bindRule () {
       let value = $el.val()
       let {result, msg} = v[rule](value)
 
-      let $p = $el.parent().next()
+      let $p = $el.parent().parent().next()
       let $span = $p.find('span')
 
       // 验证正确隐藏提示语，错误显示

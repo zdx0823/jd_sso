@@ -8,6 +8,9 @@ use App\Custom\Common\CustomCommon;
 use Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Gregwar\Captcha\CaptchaBuilder;
+use Gregwar\Captcha\PhraseBuilder;
+use Illuminate\Support\Facades\Auth;
 
 class RegiestController extends Controller
 {
@@ -137,10 +140,98 @@ class RegiestController extends Controller
     }
 
 
+    public static function buildCaptcha ($width = 100, $height = 40, $fn = null) {
+
+        $key = env('APP_KEY');
+        $phrase = new PhraseBuilder;
+
+        // 设置验证码位数
+        $code = $phrase->build(4);
+
+        // 生成验证码图片的Builder对象,配置相应属性
+        $builder = new CaptchaBuilder($code, $phrase);
+
+        // 设置背景颜色
+        $builder->setBackgroundColor(96, 165, 250);
+        $builder->setMaxAngle(25);
+        $builder->setMaxBehindLines(10);
+        $builder->setMaxFrontLines(10);
+
+        // 可以设置图片宽高及字体
+        $builder->build($width, $height, $font = null);
+
+        // 获取验证码的内容
+        $phrase = $builder->getPhrase();
+
+        // 执行回调
+        if (isset($fn)) {
+            $fn($phrase);
+        }
+
+        // 生成图片
+        header('Cache-Control: no-cache, must-revalidate');
+        header('content-type: image/jpeg');
+        $builder->output();
+    }
+
+
+    public function test () {
+        // self::captcha();
+    }
+
+
+    public function captcha (Request $request) {
+
+        $w = $request->w;
+        $h = $request->h;
+        $captchaType = $request->captchaType;
+
+        self::buildCaptcha($w, $h, function ($code) use ($captchaType) {
+            session([
+                "captcha_$captchaType" => $code
+            ]);
+        });
+    }
+
+
     // 登录页面
     public function loginPage (Request $request) {
         return view('login', [
             'type' => 'login'
         ]);
+    }
+
+
+    // 登录逻辑
+    public function login (Request $request) {
+
+        $email = $request->email;
+        $password = $request->password;
+        $captcha = strtolower($request->captcha);
+
+        // 验证码是否正确
+        $sessionCaptcha = strtolower(session("captcha_login"));
+        if ($captcha !== $sessionCaptcha) {
+            return CustomCommon::makeErrRes('验证码不正确，请重新输入');
+        }
+
+        // 尝试登录
+        $res = Auth::attempt(compact('email', 'password'));
+
+        // 用户不存在
+        if (!$res) {
+            return CustomCommon::makeErrRes('账号或密码错误，请重新输入');
+        }
+
+        // 获取实例
+        $user = Auth::user();
+
+        // 未激活
+        if (!$user->isActived) {
+            Auth::logout();
+            return CustomCommon::makeErrRes('账号或密码错误，请重新输入');
+        }
+
+        return CustomCommon::makeSuccRes([], '登录成功');
     }
 }

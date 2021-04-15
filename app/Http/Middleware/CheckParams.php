@@ -70,7 +70,52 @@ class CheckParams
     }
 
 
+    private function captcha ($request) {
+        
+        // query字段
+        $validateData = $request->input();
+        
+        $res = Validator::make($validateData, [
+            'w' => 'numeric|min:1',
+            'h' => 'numeric|min:1',
+            'captchaType' => 'required|in:login',
+        ]);
 
+        if ($res->fails() !== false) return $this->makeErrRes($res);
+
+        $request->w = isset($request->w) ? $request->w : 100;
+        $request->h = isset($request->h) ? $request->h : 40;
+
+        return true;
+    }
+
+
+    private function login ($request) {
+
+        // query字段
+        $validateData = $request->input();
+
+        // 邮箱和密码是rsa加密字段，解密后再判断值
+        $validateData['email'] = isset($validateData['email'])
+            ? $this->decrypt($validateData['email'])
+            : null;
+
+        $validateData['password'] = isset($validateData['password'])
+            ? $this->decrypt($validateData['password'])
+            : null;
+
+        $res = Validator::make($validateData, [
+            'email' => 'bail|required|email',
+            'captcha' => 'required'
+        ]);
+
+        if ($res->fails() !== false) return $this->makeErrRes($res);
+
+        $request->email = $validateData['email'];
+        $request->password = $validateData['password'];
+
+        return true;
+    }
 
     
     /**

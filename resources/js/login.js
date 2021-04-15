@@ -25,22 +25,46 @@ $(() => {
       isFormOk = fn()
     })
 
+    // 参数有问题
+    if (!isFormOk) return
+
     let $form = $('form')
     let email = $form.find('[jshook=email]').val()
     let password = $form.find('[jshook=password]').val()
-    
+    let captcha = $form.find('[jshook=captcha]').val()
+
+    isSendEmail = true
     $.post('/login', {
       email: util.encrypt(email),
       password: util.encrypt(password),
+      captcha
     }).then((res) => {
       
       const {status, msg, realMsg} = util.deJson(res)
-      
-      console.log(res);
+      if (status === -1) {
+        util.toast(realMsg, 'danger')
+        isSendEmail = false
+        return
+      }
+
+      // 登录成功，锁定表单
+      $form.find('[jshook=formShade]').show()
+      util.toast(msg, 'success')
+      isSendEmail = true
 
     })
 
   })
 
+
+  // 验证码点击事件
+  $('[jshook=captchaImg]').on('click', function () {
+    let $el = $(this)
+
+    let time = Date.now()
+    let src = "/captcha?captchaType=login&w=128&h=48#" + time
+    $el.find('img').attr('src', src)
+
+  })
 
 })
