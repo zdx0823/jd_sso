@@ -136,4 +136,11 @@ class RegiestController extends Controller
         // 重定向到之前页面或首页
     }
 
+
+    // 登录页面
+    public function loginPage (Request $request) {
+        return view('login', [
+            'type' => 'login'
+        ]);
+    }
 }

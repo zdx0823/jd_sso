@@ -11,6 +11,7 @@ class Input extends Component
         'name' => 'iconyonghu',
         'email' => 'iconemail',
         'password' => 'iconicon2',
+        'verifyCode' => 'iconyanzhengma',
     ];
     
     public $type;
@@ -27,12 +28,15 @@ class Input extends Component
         $type = 'name',
         $name = "default",
         $rule = '',
-        $jshook = ''
+        $jshook = '',
+        $icon = null
     )
     {
         $this->placeholder = $placeholder;
-        $this->icon = array_key_exists($type, $this->iconMap)
-            ? $this->iconMap[$type]
+
+        $iconKey = isset($icon) ? $icon : $type;
+        $this->icon = array_key_exists($iconKey, $this->iconMap)
+            ? $this->iconMap[$iconKey]
             : $this->iconMap['name'];
 
         $this->type = $type;

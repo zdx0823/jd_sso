@@ -1,4 +1,4 @@
-(self["webpackChunk"] = self["webpackChunk"] || []).push([["/js/regiest"],{
+(self["webpackChunk"] = self["webpackChunk"] || []).push([["/js/login"],{
 
 /***/ "./resources/js/common.js":
 /*!********************************!*\
@@ -77,10 +77,10 @@ function bindRule() {
 
 /***/ }),
 
-/***/ "./resources/js/regiest.js":
-/*!*********************************!*\
-  !*** ./resources/js/regiest.js ***!
-  \*********************************/
+/***/ "./resources/js/login.js":
+/*!*******************************!*\
+  !*** ./resources/js/login.js ***!
+  \*******************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -89,17 +89,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _validate__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validate */ "./resources/js/validate.js");
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./util */ "./resources/js/util.js");
-/* harmony import */ var _common__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./common */ "./resources/js/common.js");
-
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./util */ "./resources/js/util.js");
+/* harmony import */ var _common__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./common */ "./resources/js/common.js");
 
 
 
 
 jquery__WEBPACK_IMPORTED_MODULE_0___default()(function () {
-  // 绑定规则
-  var ruleFnList = (0,_common__WEBPACK_IMPORTED_MODULE_4__.bindRule)(); // 侦听提交按钮，提交前检查参数
+  // 绑定验证规则
+  var ruleFnList = (0,_common__WEBPACK_IMPORTED_MODULE_3__.bindRule)(); // 侦听提交按钮，提交前检查参数
 
   var isSendEmail = false;
   jquery__WEBPACK_IMPORTED_MODULE_0___default()('form input[type=submit]').on('click', function (e) {
@@ -111,30 +109,18 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()(function () {
       isFormOk = fn();
     });
     var $form = jquery__WEBPACK_IMPORTED_MODULE_0___default()('form');
-    var username = $form.find('[jshook=username]').val();
     var email = $form.find('[jshook=email]').val();
     var password = $form.find('[jshook=password]').val();
-    jquery__WEBPACK_IMPORTED_MODULE_0___default().post('/store', {
-      username: username,
-      email: _util__WEBPACK_IMPORTED_MODULE_3__.default.encrypt(email),
-      password: _util__WEBPACK_IMPORTED_MODULE_3__.default.encrypt(password)
+    jquery__WEBPACK_IMPORTED_MODULE_0___default().post('/login', {
+      email: _util__WEBPACK_IMPORTED_MODULE_2__.default.encrypt(email),
+      password: _util__WEBPACK_IMPORTED_MODULE_2__.default.encrypt(password)
     }).then(function (res) {
-      var _util$deJson = _util__WEBPACK_IMPORTED_MODULE_3__.default.deJson(res),
+      var _util$deJson = _util__WEBPACK_IMPORTED_MODULE_2__.default.deJson(res),
           status = _util$deJson.status,
           msg = _util$deJson.msg,
           realMsg = _util$deJson.realMsg;
 
-      return;
-
-      if (status == -1) {
-        _util__WEBPACK_IMPORTED_MODULE_3__.default.toast(msg, 'danger');
-        return;
-      }
-
-      _util__WEBPACK_IMPORTED_MODULE_3__.default.toast(realMsg, 'success'); // 申请成功，锁定表单，提示用户去看邮件
-
-      $form.find('[jshook=formShade]').show();
-      isSendEmail = true;
+      console.log(res);
     });
   });
 });
@@ -24670,7 +24656,7 @@ module.exports = function (list, options) {
 /******/ "use strict";
 /******/ 
 /******/ var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-/******/ __webpack_require__.O(0, ["/js/vendor"], () => (__webpack_exec__("./resources/js/regiest.js")));
+/******/ __webpack_require__.O(0, ["/js/vendor"], () => (__webpack_exec__("./resources/js/login.js")));
 /******/ var __webpack_exports__ = __webpack_require__.O();
 /******/ }
 ]);

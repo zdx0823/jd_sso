@@ -13,6 +13,7 @@ const mix = require('laravel-mix');
 
 mix.js('resources/js/app.js', 'public/js')
 mix.js('resources/js/regiest.js', 'public/js').extract(['jquery', 'jquery-validation', 'validator'])
+mix.js('resources/js/login.js', 'public/js').extract(['jquery', 'jquery-validation', 'validator'])
 
 mix.postCss('resources/css/regiest.css', 'public/css', [
     require('tailwindcss'),

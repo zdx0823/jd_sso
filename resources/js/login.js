@@ -1,12 +1,13 @@
 import $ from 'jquery'
 import _ from 'lodash'
-import v from './validate'
 import util from './util'
 import { bindRule } from './common'
 
+
 $(() => {
 
-  // 绑定规则
+
+  // 绑定验证规则
   let ruleFnList = bindRule()
 
 
@@ -25,32 +26,21 @@ $(() => {
     })
 
     let $form = $('form')
-    let username = $form.find('[jshook=username]').val()
     let email = $form.find('[jshook=email]').val()
     let password = $form.find('[jshook=password]').val()
     
-    $.post('/store', {
-      username,
+    $.post('/login', {
       email: util.encrypt(email),
       password: util.encrypt(password),
     }).then((res) => {
       
       const {status, msg, realMsg} = util.deJson(res)
       
-      return;
-      if (status == -1) {
-        util.toast(msg, 'danger')
-        return
-      }
+      console.log(res);
 
-      util.toast(realMsg, 'success')
-
-      // 申请成功，锁定表单，提示用户去看邮件
-      $form.find('[jshook=formShade]').show()
-
-      isSendEmail = true
     })
 
   })
+
 
 })
