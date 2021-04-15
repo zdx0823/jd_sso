@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
 
+        Schema::defaultStringLength(191);
+
+        // 自定义验证规则
         Validator::extend('$password', function ($attribute, $value, $parameters, $validator) {
 
             $result = (mb_strlen($value) < 8 || mb_strlen($value) > 32);
