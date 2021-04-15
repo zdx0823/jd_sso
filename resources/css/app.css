@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import './iconfont.css';
+@import './iconfont.css';
+
+@layer base {
+
+  html {
+    @apply w-full h-full;
+  }
+
+  body {
+    @apply w-full h-full;
+  }
+}
+
+.logo {
+  @apply bg-left-top bg-no-repeat;
+  width: 192px;
+  height: 120px;
+  background: url('../img/logo.png');
+}

@@ -18,6 +18,6 @@ mix.postCss('resources/css/regiest.css', 'public/css', [
     require('tailwindcss'),
 ])
 
-mix.postCss('resources/css/test.css', 'public/css', [
+mix.postCss('resources/css/app.css', 'public/css', [
     require('tailwindcss'),
 ])

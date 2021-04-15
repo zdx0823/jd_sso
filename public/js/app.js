@@ -19099,10 +19099,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./resources/css/test.css":
-/*!********************************!*\
-  !*** ./resources/css/test.css ***!
-  \********************************/
+/***/ "./resources/css/app.css":
+/*!*******************************!*\
+  !*** ./resources/css/app.css ***!
+  \*******************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -19311,7 +19311,7 @@ process.umask = function() { return 0; };
 /******/ "use strict";
 /******/ 
 /******/ var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-/******/ __webpack_require__.O(0, ["css/regiest","css/test"], () => (__webpack_exec__("./resources/js/app.js"), __webpack_exec__("./resources/css/regiest.css"), __webpack_exec__("./resources/css/test.css")));
+/******/ __webpack_require__.O(0, ["css/app","css/regiest"], () => (__webpack_exec__("./resources/js/app.js"), __webpack_exec__("./resources/css/regiest.css"), __webpack_exec__("./resources/css/app.css")));
 /******/ var __webpack_exports__ = __webpack_require__.O();
 /******/ }
 ]);
