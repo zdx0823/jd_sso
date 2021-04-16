@@ -11,9 +11,9 @@ module.exports = {
   },
   variants: {
     extend: {
-      backgroundColor: ['group-focus', 'focus-within', 'active'],
+      backgroundColor: ['group-focus', 'focus-within', 'active', 'checked'],
       textColor: ['focus-within'],
-      borderColor: ['focus-within'],
+      borderColor: ['focus-within', 'checked'],
     }
   },
   plugins: []

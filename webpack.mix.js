@@ -17,8 +17,10 @@ mix.js('resources/js/login.js', 'public/js').extract(['jquery', 'jquery-validati
 
 mix.postCss('resources/css/regiest.css', 'public/css', [
     require('tailwindcss'),
+    require('autoprefixer')
 ])
 
 mix.postCss('resources/css/app.css', 'public/css', [
     require('tailwindcss'),
+    require('autoprefixer')
 ])

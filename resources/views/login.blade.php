@@ -13,13 +13,17 @@
       <div class="w-full relative">
         <x-input type="email" rule="email" placeholder="请输入邮箱" class="mb-4" jshook="email" />
         <x-input type="password" rule="required" placeholder="请输入密码" class="mb-4" jshook="password" />
-        <x-input type="text" rule="required" icon="verifyCode" placeholder="请输入验证码" class="mb-4" jshook="captcha">
+        <x-input type="text" rule="required" icon="verifyCode" placeholder="请输入验证码" class="mb-2" jshook="captcha">
           <x-slot name="code">
             <div class="w-32 ml-3 border border-gray-200 box-border rounded-md overflow-hidden" jshook="captchaImg">
               <img src="/captcha?captchaType=login&w=128&h=48">
             </div>
           </x-slot>
         </x-input>
+        <div class="mb-4">
+          <input id="rememberBox" type="checkbox" class="w-4 h-4" jshook="remember">
+          <label for="rememberBox" class="text-sm text-gray-700 align-top select-none">7天免登录</label>
+        </div>
         <x-button type="danger" isSubmit value="登录" class="w-full h-10" />
         <div class="hidden w-full h-full bg-gray-700 opacity-25 cursor-not-allowed absolute left-0 top-0" jshook="formShade"></div>
       </div>

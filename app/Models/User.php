@@ -38,9 +38,9 @@ class User extends Authenticatable
     ];
 
     // 自定义字段
-    protected $appends = ['isActived'];
+    // protected $appends = ['isActived'];
 
-    public function getIsActivedAttribute () {
-        return $this->email_verified_at > 0;
-    }
+    // public function getIsActivedAttribute () {
+    //     return $this->email_verified_at > 0;
+    // }
 }

@@ -32,12 +32,14 @@ $(() => {
     let email = $form.find('[jshook=email]').val()
     let password = $form.find('[jshook=password]').val()
     let captcha = $form.find('[jshook=captcha]').val()
+    let remember = $form.find('[jshook=remember]').prop('checked')
 
     isSendEmail = true
     $.post('/login', {
       email: util.encrypt(email),
       password: util.encrypt(password),
-      captcha
+      captcha,
+      remember: Number(remember)
     }).then((res) => {
       
       const {status, msg, realMsg} = util.deJson(res)

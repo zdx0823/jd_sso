@@ -125,7 +125,7 @@ class RegiestController extends Controller
         $user = User::find($id);
 
         // 记录不存在或已激活，返回token无效
-        if ($user == null || $user->email_verified_at > 0) {
+        if ($user == null || $user->actived > 0) {
             // 记录不存在，token无效
             $msg = '链接已失效，请重新提交信息';
             return view('email.tokenErr', compact('msg'));
@@ -133,7 +133,7 @@ class RegiestController extends Controller
 
 
         // 未激活，更新数据
-        $user->email_verified_at = time();
+        $user->actived = 1;
         $user->save();
 
         // 重定向到之前页面或首页
@@ -208,6 +208,7 @@ class RegiestController extends Controller
         $email = $request->email;
         $password = $request->password;
         $captcha = strtolower($request->captcha);
+        $remember = boolval($request->remember);
 
         // 验证码是否正确
         $sessionCaptcha = strtolower(session("captcha_login"));
@@ -216,21 +217,25 @@ class RegiestController extends Controller
         }
 
         // 尝试登录
-        $res = Auth::attempt(compact('email', 'password'));
+        $res = Auth::attempt([
+            'email' => $email,
+            'password' => $password,
+            'actived' => 1
+        ]);
 
         // 用户不存在
         if (!$res) {
             return CustomCommon::makeErrRes('账号或密码错误，请重新输入');
         }
 
-        // 获取实例
+        // 设置登录超时时间
         $user = Auth::user();
+        $timeout = $remember
+            ? time() + env('LOGIN_REMEMBER_TIMEOUT')
+            : time() + env('LOGIN_TIMEOUT');
 
-        // 未激活
-        if (!$user->isActived) {
-            Auth::logout();
-            return CustomCommon::makeErrRes('账号或密码错误，请重新输入');
-        }
+        $user->rememberToken = $timeout;
+        $user->save();
 
         return CustomCommon::makeSuccRes([], '登录成功');
     }
