@@ -1,4 +1,5 @@
 import $ from 'jquery'
+import _ from 'lodash'
 import v from './validate'
 
 // laravel的csrf_token
@@ -27,7 +28,7 @@ function bindRule () {
 
     let ruleName = $(el).attr('rule')
     if (ruleName === '') return false
-    if (v[ruleName] == null) return false
+    // if (v[ruleName] == null) return false
 
     return true
 
@@ -42,9 +43,37 @@ function bindRule () {
     // 节流
     let fn = _.throttle(function () {
     
-      let rule = $el.attr('rule')
+      let ruleStr = $el.attr('rule')
       let value = $el.val()
-      let {result, msg} = v[rule](value)
+      let ruleRes = null
+
+      // 分解规则
+      let ruleArr = ruleStr.split('|')
+
+      for (let i = 0, len = ruleArr.length; i < len; i++) {
+        let rule = ruleArr[i]
+        
+        // 分解参数，当前项的值作为函数第一个参数
+        let splited = rule.split(':')
+        let params = splited.length > 1
+          ? [value, ...splited[1].split(',')]
+          : [value]
+
+        let ruleName = splited[0]
+        // 存在执行，不存在跳过
+        if (v[ruleName]) {
+          ruleRes = v[ruleName](...params)
+          
+          // 遇到验证错误的就退出
+          if (ruleRes.result === false) {
+            break
+          }
+          
+        }
+      }
+
+
+      let {result, msg} = ruleRes
 
       let $p = $el.parent().parent().next()
       let $span = $p.find('span')

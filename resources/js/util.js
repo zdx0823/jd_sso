@@ -95,8 +95,29 @@ function deJson (res) {
 }
 
 
+// 更新验证码
+function bindCaptcha (type, w = 128, h = 48) {
+
+  if (type == null) {
+    console.error('type为必选值')
+    return
+  }
+
+  $('[jshook=captchaImg]').on('click', function () {
+    let $el = $(this)
+
+    let time = Date.now()
+    let src = `/captcha?captchaType=${type}&w=${w}&h=${h}#${time}`
+    $el.find('img').attr('src', src)
+
+  })
+
+}
+
+
 export default {
   encrypt,
   toast,
   deJson,
+  bindCaptcha,
 }

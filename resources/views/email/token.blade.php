@@ -13,7 +13,7 @@ border-radius: 5px;
     color: #333;
     border-bottom: 1px solid #ddd;
   ">
-    感谢您注册<b>JD</b>，请点击下面链接完成注册
+    {{$msg}}
   </div>
   <div style="
     text-align: center;
@@ -21,11 +21,11 @@ border-radius: 5px;
     padding: 10px 20px;
   ">
       <a
-        href="{{route('confirm', $token)}}"
+        href="{{route($confirmRoute, $token)}}"
         style="
           color: #2563EB
         "
-      >{{route('confirm', $token)}}</a>
+      >{{route($confirmRoute, $token)}}</a>
   </div>
   <div style="
     height: 50px;

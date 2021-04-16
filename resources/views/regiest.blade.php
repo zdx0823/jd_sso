@@ -1,6 +1,6 @@
 @extends('layout.regiest_layout')
 @section('title', '个人注册')
-@section('js', 'js/regiest.js')
+@section('js', '/js/regiest.js')
 
 @section('content')
 

@@ -2,6 +2,8 @@
     "/js/app.js": "/js/app.js",
     "/js/regiest.js": "/js/regiest.js",
     "/js/login.js": "/js/login.js",
+    "/js/passwordReset.js": "/js/passwordReset.js",
+    "/js/passwordResetForm.js": "/js/passwordResetForm.js",
     "/js/manifest.js": "/js/manifest.js",
     "/css/app.css": "/css/app.css",
     "/css/regiest.css": "/css/regiest.css",

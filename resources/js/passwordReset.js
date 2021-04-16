@@ -1,14 +1,14 @@
 import $ from 'jquery'
 import _ from 'lodash'
-import v from './validate'
 import util from './util'
 import { bindRule } from './common'
 
 $(() => {
 
-  // 绑定规则
-  let ruleFnList = bindRule()
 
+  // 绑定验证规则
+  let ruleFnList = bindRule()
+  console.log(ruleFnList);
 
   // 侦听提交按钮，提交前检查参数
   let isSendEmail = false
@@ -24,36 +24,36 @@ $(() => {
       isFormOk = fn()
     })
 
+    // 参数有问题
     if (!isFormOk) return
 
     let $form = $('form')
-    let username = $form.find('[jshook=username]').val()
     let email = $form.find('[jshook=email]').val()
-    let password = $form.find('[jshook=password]').val()
-    
+    let captcha = $form.find('[jshook=captcha]').val()
+
     isSendEmail = true
-    $.post('/regiest/sendEmail', {
-      username,
+    $.post('/password/sendEmail', {
       email: util.encrypt(email),
-      password: util.encrypt(password),
+      captcha,
     }).then((res) => {
       
       const {status, msg, realMsg} = util.deJson(res)
-      
-      if (status == -1) {
+      if (status === -1) {
         util.toast(realMsg, 'danger')
         isSendEmail = false
         return
       }
 
-      util.toast(msg, 'success')
-
-      // 申请成功，锁定表单，提示用户去看邮件
+      // 登录成功，锁定表单
       $form.find('[jshook=formShade]').show()
-
+      util.toast(msg, 'success')
       isSendEmail = true
+
     })
 
   })
+
+  // 验证码点击事件
+  util.bindCaptcha('passwordReset')
 
 })

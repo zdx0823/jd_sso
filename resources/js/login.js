@@ -35,7 +35,7 @@ $(() => {
     let remember = $form.find('[jshook=remember]').prop('checked')
 
     isSendEmail = true
-    $.post('/login', {
+    $.post('/login/singIn', {
       email: util.encrypt(email),
       password: util.encrypt(password),
       captcha,
@@ -60,13 +60,6 @@ $(() => {
 
 
   // 验证码点击事件
-  $('[jshook=captchaImg]').on('click', function () {
-    let $el = $(this)
-
-    let time = Date.now()
-    let src = "/captcha?captchaType=login&w=128&h=48#" + time
-    $el.find('img').attr('src', src)
-
-  })
+  util.bindCaptcha('login')
 
 })

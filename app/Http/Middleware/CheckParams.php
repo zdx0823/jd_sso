@@ -36,8 +36,12 @@ class CheckParams
     }
 
 
-
-    private function store ($request) {
+    /**
+     * 注册发送邮件参数检查
+     * 检查项：email, password,
+     * 密码为长度2-16的字符，不能全部重复，不能数字开头
+     */
+    private function sendEmailRegiest ($request) {
 
         // query字段
         $validateData = $request->input();
@@ -70,6 +74,64 @@ class CheckParams
     }
 
 
+    /**
+     * 修改密码发送邮件参数检查
+     * 检查项：email, captcha
+     */
+    private function sendEmailResetPwd ($request) {
+
+        // query字段
+        $validateData = $request->input();
+
+        // 邮箱和密码是rsa加密字段，解密后再判断值
+        $validateData['email'] = isset($validateData['email'])
+            ? $this->decrypt($validateData['email'])
+            : null;
+
+        $res = Validator::make($validateData, [
+            'email' => 'bail|required|email',
+            'captcha' => 'required'
+        ]);
+
+        if ($res->fails() !== false) return $this->makeErrRes($res);
+
+        $request->email = $validateData['email'];
+
+        return true;
+    }
+
+
+    /**
+     * 新密码参数检查
+     * 检查项：两次密码必须一致
+     */
+    private function changePwd ($request) {
+
+        // query字段
+        $validateData = $request->input();
+
+        // 邮箱和密码是rsa加密字段，解密后再判断值
+        $validateData['pass1'] = isset($validateData['pass1'])
+            ? $this->decrypt($validateData['pass1'])
+            : null;
+
+        $validateData['pass2'] = isset($validateData['pass2'])
+            ? $this->decrypt($validateData['pass2'])
+            : null;
+
+        $res = Validator::make($validateData, [
+            'pass1' => 'bail|required|$password',
+            'pass2' => 'bail|required|same:pass1'
+        ]);
+
+        if ($res->fails() !== false) return $this->makeErrRes($res);
+
+        $request->password = $validateData['pass1'];
+
+        return true;
+    }
+
+
     private function captcha ($request) {
         
         // query字段
@@ -78,7 +140,7 @@ class CheckParams
         $res = Validator::make($validateData, [
             'w' => 'numeric|min:1',
             'h' => 'numeric|min:1',
-            'captchaType' => 'required|in:login',
+            'captchaType' => 'required|in:login,passwordReset',
         ]);
 
         if ($res->fails() !== false) return $this->makeErrRes($res);
@@ -90,7 +152,7 @@ class CheckParams
     }
 
 
-    private function login ($request) {
+    private function singIn ($request) {
 
         // query字段
         $validateData = $request->input();
@@ -116,6 +178,7 @@ class CheckParams
 
         return true;
     }
+
 
     
     /**

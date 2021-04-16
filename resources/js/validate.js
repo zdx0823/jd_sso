@@ -1,4 +1,5 @@
 import validator from 'validator'
+import $ from 'jquery'
 
 let message = {
   email: '邮箱格式不正确',
@@ -6,7 +7,7 @@ let message = {
   required: '字段不能为空',
 }
 
-function email (value) {
+function email (value = '') {
 
   let result = validator.isEmail(value)
 
@@ -21,7 +22,7 @@ function email (value) {
 
 
 // 中英文数字，2-16字符
-function username (value) {
+function username (value = '') {
   
   let result = /^[0-9a-zA-Z]{2,16}$/.test(value)
 
@@ -36,7 +37,7 @@ function username (value) {
 
 
 // 密码，长度8-32，字母数字符号组成
-function password (value) {
+function password (value = '') {
 
   let result = (value.length < 8 || value.length > 32)
   if (result) return {
@@ -63,7 +64,7 @@ function password (value) {
 }
 
 
-function required (value) {
+function required (value = '') {
   
   let result = value == null
   if (result) return {
@@ -86,9 +87,31 @@ function required (value) {
 }
 
 
+function equal (val1 = null, jshook = null) {
+
+  if (val1 == null || jshook == null) return {
+    result: false,
+    msg: '两次输入结果不一致'
+  }
+
+  let val2 = $(`[jshook=${jshook}]`).val()
+
+  if (val1 !== val2) return {
+    result: false,
+    msg: '两次输入结果不一致',
+  }
+
+  return {
+    result: true,
+    msg: '',
+  }
+}
+
+
 export default {
   email,
   username,
   password,
   required,
+  equal,
 }

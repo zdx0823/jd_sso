@@ -3,7 +3,7 @@
   <div class="flex flex-row items-center justify-between w-full h-full md:w-9/12 mx-auto">
     <a href="javascript:;" class="logo"></a>
     
-    @if (!isset($type))
+    @if (isset($type) && $type === 'regiest')
         
       <p class="text-sm self-end">
         已有账号？
