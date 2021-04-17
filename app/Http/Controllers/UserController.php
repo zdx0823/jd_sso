@@ -344,7 +344,7 @@ class UserController extends Controller
 
     
     public function test () {
-        // self::captcha();
+        return session()->get(env('USER_SESSION_KEY'));
     }
 
 }

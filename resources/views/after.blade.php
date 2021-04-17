@@ -1,5 +1,13 @@
 @extends('layout.regiest_layout')
-@section('title', '已登录')
+@if (Auth::check())
+    
+  @section('title', '已登录')
+
+@else
+
+  @section('title', '未登录')
+
+@endif
 @section('js', '/js/after.js')
 @section('content')
 

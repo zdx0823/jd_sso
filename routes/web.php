@@ -65,3 +65,4 @@ Route::prefix('/login')->group(function () {
 // 不需要前缀的路由
 Route::get('/captcha', 'UserController@captcha')->name('captcha');
 Route::get('/', 'StaticPageController@indexPage')->name('indexPage');
+Route::get('/test', 'UserController@test')->middleware('checkAuth');
