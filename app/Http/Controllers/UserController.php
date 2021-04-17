@@ -196,6 +196,9 @@ class UserController extends Controller
         // 帮用户登录重定向到首页
         Auth::login($user);
 
+        // 设置session
+        self::setUserSession();
+
         return redirect()->route('indexPage');
     }
 
@@ -264,6 +267,25 @@ class UserController extends Controller
     }
 
 
+    /**
+     * 设置7天免登录的session
+     * isRemember 是否记住我
+     * 默认为24时时效
+     */
+    private static function setUserSession ($isRemember = false) {
+
+        session([
+            env('USER_SESSION_KEY') => [
+                'id' => Auth::user()->id,
+                'timeout' => $isRemember
+                    ? time() + 60 * 60 * 24 * 7
+                    : time() + env('LOGIN_TIMEOUT')
+            ]
+        ]);
+
+    }
+
+
     // 登录逻辑
     public function singIn (Request $request) {
 
@@ -291,14 +313,8 @@ class UserController extends Controller
             return CustomCommon::makeErrRes(self::S_ACCOUNT_ERR);
         }
 
-        // 设置登录超时时间
-        $user = Auth::user();
-        $timeout = $remember
-            ? time() + env('LOGIN_REMEMBER_TIMEOUT')
-            : time() + env('LOGIN_TIMEOUT');
-
-        $user->rememberToken = $timeout;
-        $user->save();
+        // 设置session
+        self::setUserSession($remember);
 
         return CustomCommon::makeSuccRes([
             'after' => route('indexPage')
@@ -312,6 +328,15 @@ class UserController extends Controller
     public function logout () {
 
         Auth::logout();
+
+        // 重置session
+        session([
+            env('USER_SESSION_KEY') => [
+                'id' => null,
+                'timeout' => 0
+            ]
+        ]);
+
         return CustomCommon::makeSuccRes([
             'after' => route('indexPage')
         ], self::S_SIGNOUT_SUCC);
