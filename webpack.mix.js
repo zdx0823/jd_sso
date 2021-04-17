@@ -16,6 +16,7 @@ mix.js('resources/js/regiest.js', 'public/js').extract(['jquery', 'jquery-valida
 mix.js('resources/js/login.js', 'public/js').extract(['jquery', 'jquery-validation', 'validator'])
 mix.js('resources/js/passwordReset.js', 'public/js').extract(['jquery', 'jquery-validation', 'validator'])
 mix.js('resources/js/passwordResetForm.js', 'public/js').extract(['jquery', 'jquery-validation', 'validator'])
+mix.js('resources/js/after.js', 'public/js').extract(['jquery', 'jquery-validation', 'validator'])
 
 mix.postCss('resources/css/regiest.css', 'public/css', [
     require('tailwindcss'),

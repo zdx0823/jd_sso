@@ -20,9 +20,12 @@
             </div>
           </x-slot>
         </x-input>
-        <div class="mb-4">
-          <input id="rememberBox" type="checkbox" class="w-4 h-4" jshook="remember">
-          <label for="rememberBox" class="text-sm text-gray-700 align-top select-none">7天免登录</label>
+        <div class="mb-4 clearfix">
+          <div class="float-left">
+            <input id="rememberBox" type="checkbox" class="w-4 h-4" jshook="remember">
+            <label for="rememberBox" class="text-sm text-gray-700 align-top select-none">7天免登录</label>
+          </div>
+          <a href="{{route('passwordPage')}}" class="float-right text-sm text-blue-700 hover:underline">找回密码</a>
         </div>
         <x-button type="danger" isSubmit value="登录" class="w-full h-10" />
         <div class="hidden w-full h-full bg-gray-700 opacity-25 cursor-not-allowed absolute left-0 top-0" jshook="formShade"></div>

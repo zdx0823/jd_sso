@@ -37,7 +37,7 @@ $(() => {
       captcha,
     }).then((res) => {
       
-      const {status, msg, realMsg} = util.deJson(res)
+      const {status, msg, realMsg, data} = util.deJson(res)
       if (status === -1) {
         util.toast(realMsg, 'danger')
         isSendEmail = false
@@ -49,6 +49,7 @@ $(() => {
       util.toast(msg, 'success')
       isSendEmail = true
 
+      window.location.replace(data.after)
     })
 
   })

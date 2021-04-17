@@ -107,7 +107,7 @@ function bindCaptcha (type, w = 128, h = 48) {
     let $el = $(this)
 
     let time = Date.now()
-    let src = `/captcha?captchaType=${type}&w=${w}&h=${h}#${time}`
+    let src = `/captcha?captchaType=${type}&w=${w}&h=${h}&t=${time}`
     $el.find('img').attr('src', src)
 
   })

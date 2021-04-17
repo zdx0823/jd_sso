@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Hash;
+
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -28,7 +30,9 @@ class UserController extends Controller
     const S_ROUTE_RESETPWD_CONFIRM = 'resetPwdConfirm';
     const S_RESET_PASS_ERR_SAME = '修改失败，新密码与原密码相同';
     const S_ACCOUNT_ERR = '账号或密码错误，请重新输入';
-    const S_SIGN_SUCC = '登录成功';
+    const S_SIGNUP_SUCC = '登录成功';
+    const S_SIGNIN_SUCC = '注册成功';
+    const S_SIGNOUT_SUCC = '登出成功';
 
 
     /**
@@ -91,7 +95,9 @@ class UserController extends Controller
             'subject' => 'JD注册确认邮件',
         ]);
 
-        return CustomCommon::makeSuccRes([], '邮件发送成功，请到邮箱查看');
+        return CustomCommon::makeSuccRes([
+            'after' => route('indexPage')
+        ], '邮件发送成功，请到邮箱查看');
     }
 
 
@@ -123,7 +129,7 @@ class UserController extends Controller
         if ($resetIns != null) {
 
             $isTimeout = (time() - $resetIns->ctime) < env('PASSWORD_RESET_TIMEOUT');
-            if ($isTimeout) return CustomCommon::makeErrRes([], self::S_RESETPWD_EMAIL_SENDED);
+            if ($isTimeout) return CustomCommon::makeErrRes(self::S_RESETPWD_EMAIL_SENDED);
 
         }
 
@@ -146,7 +152,9 @@ class UserController extends Controller
             'confirmRoute' => self::S_ROUTE_RESETPWD_CONFIRM
         ]);
 
-        return CustomCommon::makeSuccRes([], '邮件发送成功，请到邮箱查看');
+        return CustomCommon::makeSuccRes([
+            'after' => route('indexPage')
+        ], '邮件发送成功，请到邮箱查看');
     }
 
 
@@ -185,7 +193,10 @@ class UserController extends Controller
         // 删除注册token
         RegiestToken::where('token', $token)->delete();
 
-        // 重定向到之前页面或首页
+        // 帮用户登录重定向到首页
+        Auth::login($user);
+
+        return redirect()->route('indexPage');
     }
 
 
@@ -194,7 +205,7 @@ class UserController extends Controller
      * 有效返回修改页面，无效返回无效界面
      */
     public function resetPwdConfirm (Request $request, $token) {
-        return view('password.form');
+
         // 找出对应记录
         $tokenIns = PasswordReset::where('token', $token)->first();
 
@@ -215,12 +226,14 @@ class UserController extends Controller
         /***token可用***/
 
         // 返回修改界面
-        return view('password.form');
+        return view('password.form', [
+            'resetPwdToken' => $token
+        ]);
     }
 
 
     /**
-     * 修改密码
+     * 修改密码逻辑
      */
     public function changePwd (Request $request) {
 
@@ -236,9 +249,7 @@ class UserController extends Controller
         $user = User::where('email', $tokenIns->email)->first();
 
         // 新密码与原密码相同，不允许修改
-        if (Hash::check($password, $user->password)) return view('email.tokenErr', [
-            'msg' => self::S_RESET_PASS_ERR_SAME
-        ]);
+        if (Hash::check($password, $user->password)) return CustomCommon::makeErrRes(self::S_RESET_PASS_ERR_SAME);
 
         // 更新
         $user->password = bcrypt($password);
@@ -247,7 +258,9 @@ class UserController extends Controller
         // 删除修改密码的token
         PasswordReset::where('token', $token)->delete();
 
-        return CustomCommon::makeSuccRes([], '修改成功');
+        return CustomCommon::makeSuccRes([
+            'after' => route('loginPage')
+        ], '修改成功');
     }
 
 
@@ -287,7 +300,21 @@ class UserController extends Controller
         $user->rememberToken = $timeout;
         $user->save();
 
-        return CustomCommon::makeSuccRes([], self::S_SIGN_SUCC);
+        return CustomCommon::makeSuccRes([
+            'after' => route('indexPage')
+        ], self::S_SIGNUP_SUCC);
+    }
+
+
+    /**
+     * 登出
+     */
+    public function logout () {
+
+        Auth::logout();
+        return CustomCommon::makeSuccRes([
+            'after' => route('indexPage')
+        ], self::S_SIGNOUT_SUCC);
     }
 
     

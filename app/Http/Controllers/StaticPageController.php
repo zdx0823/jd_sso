@@ -6,6 +6,14 @@ use Illuminate\Http\Request;
 
 class StaticPageController extends Controller
 {
+    public function __construct () {
+
+        $this->middleware('guest', [
+            'only' => ['regiest', 'login']
+        ]);
+        
+    }
+
     
     public function regiest (Request $request) {
         return view('regiest', [
@@ -21,5 +29,10 @@ class StaticPageController extends Controller
 
     public function login (Request $request) {
         return view('login');
+    }
+
+
+    public function indexPage (Request $request) {
+        return view('after');
     }
 }

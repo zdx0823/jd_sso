@@ -4,6 +4,7 @@
     "/js/login.js": "/js/login.js",
     "/js/passwordReset.js": "/js/passwordReset.js",
     "/js/passwordResetForm.js": "/js/passwordResetForm.js",
+    "/js/after.js": "/js/after.js",
     "/js/manifest.js": "/js/manifest.js",
     "/css/app.css": "/css/app.css",
     "/css/regiest.css": "/css/regiest.css",

@@ -38,7 +38,7 @@ $(() => {
       password: util.encrypt(password),
     }).then((res) => {
       
-      const {status, msg, realMsg} = util.deJson(res)
+      const {status, msg, realMsg, data} = util.deJson(res)
       
       if (status == -1) {
         util.toast(realMsg, 'danger')
@@ -50,8 +50,9 @@ $(() => {
 
       // 申请成功，锁定表单，提示用户去看邮件
       $form.find('[jshook=formShade]').show()
-
       isSendEmail = true
+
+      window.location.replace(data.after)
     })
 
   })
