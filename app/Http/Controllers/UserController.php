@@ -10,6 +10,7 @@ use Illuminate\View\View;
 use App\Models\User;
 use App\Models\RegiestToken;
 use App\Models\PasswordReset;
+use App\Models\LoginSt;
 
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -286,6 +287,21 @@ class UserController extends Controller
     }
 
 
+    /**
+     * 生成一个ST
+     */
+    private static function appendSt ($url) {
+
+        $st = base64_encode(bcrypt(random_bytes(20)));
+        LoginSt::create([
+            'st' => $st,
+            'ctime' => time()
+        ]);
+
+        return CustomCommon::appendQuery($url, compact('st'));
+    }
+
+
     // 登录逻辑
     public function singIn (Request $request) {
 
@@ -316,8 +332,17 @@ class UserController extends Controller
         // 设置session
         self::setUserSession($remember);
 
-        return CustomCommon::makeSuccRes([
-            'after' => route('indexPage')
+        // 是否需要跳转回原页面 buildSt
+        // 如果有，返回跳转链接，没有跳转到SSO的主页
+        $sessionKey = env('USER_SESSION_KEY');
+        $afterUrl = session()->get($sessionKey) !== null
+            ? self::appendSt(
+                session()->get($sessionKey)['prevServe'],
+            )
+            : route('indexPage');
+
+        $a = CustomCommon::makeSuccRes([
+            'after' => $afterUrl
         ], self::S_SIGNUP_SUCC);
     }
 

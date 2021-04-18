@@ -172,4 +172,41 @@ class CustomCommon {
         return array_pop($exploded);
     }
 
+
+    public static function appendQuery ($url, $queryArr) {
+
+        // 拼接query
+        $query = '';
+        foreach ($queryArr as $key => $val) {
+            $query .= "$key=$val&";
+        }
+        $query = rtrim($query, '&');
+
+        // 拆解url
+        $uu = parse_url($url);
+
+        // 组成新的query
+        if (isset($uu['query'])) {
+            $uuQuery = $uu['query'];
+            $query = mb_strlen($query) > 0
+                ? "$uuQuery&$query"
+                : $uuQuery;
+        } else {
+            $query = mb_strlen($query) > 0
+                ? "?$query"
+                : '';
+        }
+
+        // 合并url
+        $scheme = $uu['scheme'];
+        $host = $uu['host'];
+        $port = isset($uu['port']) ? (':' . $uu['port']) : '';
+        $path = isset($uu['path']) ? $uu['path'] : '';
+        $fragment = isset($uu['fragment']) ? $uu['fragment'] : '';
+        
+        // 返回
+        $res = "$scheme://$host$port$path$query#$fragment";
+        return $res;
+    }
+
 }

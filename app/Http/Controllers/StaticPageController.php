@@ -28,6 +28,15 @@ class StaticPageController extends Controller
 
 
     public function login (Request $request) {
+
+        $key = env('USER_SESSION_KEY');
+        $data = session()->get($key);
+        $data['prevServe'] = \urldecode($request->serve);
+        // var_dump($data);
+        session([
+            $key => $data
+        ]);
+
         return view('login');
     }
 

@@ -23,7 +23,8 @@ class SessionInit
             session([
                 $key => [
                     'id' => null,
-                    'timeout' => 0
+                    'timeout' => 0,
+                    'prevServe' => null,
                 ]
             ]);
         }
