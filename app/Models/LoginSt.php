@@ -16,5 +16,6 @@ class LoginSt extends Model
     protected $fillable = [
         'st',
         'ctime',
+        'uid',
     ];
 }

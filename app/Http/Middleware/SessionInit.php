@@ -16,7 +16,7 @@ class SessionInit
      */
     private function user () {
 
-        $key = env('USER_SESSION_KEY');
+        $key = config('custom.user_session_key');
 
         // 没有这个数组，初始化
         if (!session()->has($key)) {

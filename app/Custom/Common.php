@@ -209,4 +209,22 @@ class CustomCommon {
         return $res;
     }
 
+
+    /**
+     * 根据 env 的 CRYPT_KEY变量做key和向量值，进行解密
+     */
+    public static function decrypt ($encrypted) {
+        $key = $iv = substr(config('custom.crypt_key'), 0, 16);
+        return openssl_decrypt($encrypted, 'aes-128-cbc', $key, 0 , $iv);
+    }
+
+
+    /**
+     * 根据 env 的 CRYPT_KEY变量做key和向量值，进行加密
+     */
+    public static function encrypt ($str) {
+        $key = $iv = substr(config('custom.crypt_key'), 0, 16);
+        return openssl_encrypt($str, 'aes-128-cbc', $key, 0 , $iv);
+    }
+
 }

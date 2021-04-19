@@ -66,3 +66,6 @@ Route::prefix('/login')->group(function () {
 Route::get('/captcha', 'UserController@captcha')->name('captcha');
 Route::get('/', 'StaticPageController@indexPage')->name('indexPage');
 Route::get('/test', 'UserController@test')->middleware('checkAuth');
+
+// 验证ST是否有效
+Route::post('/check_st', 'UserController@checkSt')->name('checkSt');

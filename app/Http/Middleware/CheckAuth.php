@@ -16,7 +16,7 @@ class CheckAuth
 
     /**
      * 是否登录超时
-     * 根据 env('USER_SESSION_KEY')的session中的 id 和 timeout判断
+     * 根据 config('custom.user_session_key')的session中的 id 和 timeout判断
      * id跟当前登录id对应不上，表示登录超时
      * 当前时间大于timeout表示超时
      * 
@@ -27,7 +27,7 @@ class CheckAuth
         [
             'id' => $id,
             'timeout' => $timeout
-        ] = session()->get(env('USER_SESSION_KEY'));
+        ] = session()->get(config('custom.user_session_key'));
 
         $user = Auth::user();
 

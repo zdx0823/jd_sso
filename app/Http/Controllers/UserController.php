@@ -34,6 +34,8 @@ class UserController extends Controller
     const S_SIGNUP_SUCC = '登录成功';
     const S_SIGNIN_SUCC = '注册成功';
     const S_SIGNOUT_SUCC = '登出成功';
+    const S_ST_ERR = 'st不存在或已失效';
+    const ST_LEN = 80; // bcrypt(xxx) 的长度是60，base64_encode(bcrypt(xxx)) 的长度是80
 
 
     /**
@@ -58,7 +60,7 @@ class UserController extends Controller
         if (isset($user)) {
             
             $tokenIns = RegiestToken::where('email', $email)->first();
-            $isTimeout = (time() - $tokenIns->ctime) < env('REGIEST_TOKEN_TIMEOUT');
+            $isTimeout = (time() - $tokenIns->ctime) < config('custom.regiest_token_timeout');
             if ($isTimeout) {
                 return CustomCommon::makeErrRes(self::S_REGIEST_EMAIL_SENDED);
             }
@@ -129,7 +131,7 @@ class UserController extends Controller
         $resetIns = PasswordReset::where('email', $email)->first();
         if ($resetIns != null) {
 
-            $isTimeout = (time() - $resetIns->ctime) < env('PASSWORD_RESET_TIMEOUT');
+            $isTimeout = (time() - $resetIns->ctime) < config('custom.password_reset_timeout');
             if ($isTimeout) return CustomCommon::makeErrRes(self::S_RESETPWD_EMAIL_SENDED);
 
         }
@@ -176,7 +178,7 @@ class UserController extends Controller
         }
 
         // 失效
-        $isTimeout = (time() - $tokenIns->ctime) > env('REGIEST_TOKEN_TIMEOUT');
+        $isTimeout = (time() - $tokenIns->ctime) > config('custom.regiest_token_timeout');
         if ($isTimeout) {
             return view('email.tokenErr', ['msg' => self::S_TOKEN_TIMEOUT]);
         }
@@ -221,7 +223,7 @@ class UserController extends Controller
         }
 
         // 失效
-        $isTimeout = (time() - $tokenIns->ctime) > env('PASSWORD_RESET_TIMEOUT');
+        $isTimeout = (time() - $tokenIns->ctime) > config('custom.password_reset_timeout');
         if ($isTimeout) {
             return view('email.tokenErr', ['msg' => self::S_TOKEN_TIMEOUT]);
         }
@@ -275,14 +277,15 @@ class UserController extends Controller
      */
     private static function setUserSession ($isRemember = false) {
 
-        session([
-            env('USER_SESSION_KEY') => [
-                'id' => Auth::user()->id,
-                'timeout' => $isRemember
-                    ? time() + 60 * 60 * 24 * 7
-                    : time() + env('LOGIN_TIMEOUT')
-            ]
-        ]);
+        $key = config('custom.user_session_key');
+        $userSession = session()->get($key);
+
+        $userSession['id'] = Auth::user()->id;
+        $userSession['timeout'] = $isRemember
+            ? time() + config('custom.login_timeout_remember')
+            : time() + config('custom.login_timeout_default');
+
+        session([ $key => $userSession ]);
 
     }
 
@@ -290,10 +293,11 @@ class UserController extends Controller
     /**
      * 生成一个ST
      */
-    private static function appendSt ($url) {
+    private static function appendSt ($uid, $url) {
 
         $st = base64_encode(bcrypt(random_bytes(20)));
         LoginSt::create([
+            'uid' => $uid,
             'st' => $st,
             'ctime' => time()
         ]);
@@ -329,21 +333,81 @@ class UserController extends Controller
             return CustomCommon::makeErrRes(self::S_ACCOUNT_ERR);
         }
 
+        // 更新数据库登录过期时间
+        $loginTimeout = $remember
+            ? time() + config('custom.login_timeout_remember')
+            : time() + config('custom.login_timeout_default');
+
+        $user = Auth::user();
+        $user->login_timeout = $loginTimeout;
+        $user->save();
+
         // 设置session
         self::setUserSession($remember);
 
         // 是否需要跳转回原页面 buildSt
         // 如果有，返回跳转链接，没有跳转到SSO的主页
-        $sessionKey = env('USER_SESSION_KEY');
-        $afterUrl = session()->get($sessionKey) !== null
+        $userSession = session()->get(
+            config('custom.user_session_key')
+        );
+        
+        $prevServe = isset($userSession['prevServe'])
+            ? $userSession['prevServe']
+            : null;
+
+        $afterUrl = $prevServe !== null
             ? self::appendSt(
-                session()->get($sessionKey)['prevServe'],
+                Auth::user()->id,
+                $prevServe,
             )
             : route('indexPage');
 
-        $a = CustomCommon::makeSuccRes([
+        return CustomCommon::makeSuccRes([
             'after' => $afterUrl
         ], self::S_SIGNUP_SUCC);
+    }
+
+
+    /**
+     * 验证st是否有效
+     * 有效将删除数据库对应记录
+     * 返回json，正确返回的json包含该用户的id
+     */
+    public function checkSt (Request $request) {
+
+        // 获取前80位视为st
+        $st = substr($request->st, 0, self::ST_LEN);
+
+        $ins = LoginSt::where('st', $st)->first();
+
+        // 不存在
+        if ($ins == null) return CustomCommon::makeErrRes(self::S_ST_ERR);
+
+        // 超时
+        $isTimeout = (time() - $ins->ctime) > config('custom.st_timeout');
+        if ($isTimeout) return CustomCommon::makeErrRes(self::S_ST_ERR);
+
+        // 可用
+
+        // 删除st
+        // LoginSt::where('st', $st)->delete();
+
+        // 获取当前用户的登录超时时间，和id一起打包加密返回
+        $userTimeout = User::where('id', $ins->uid)
+            ->select('login_timeout')
+            ->first()
+            ->toArray()['login_timeout'];
+
+        $resData = [
+            'id' => $ins->uid,
+            'timeout' => $userTimeout
+        ];
+
+        $resData = CustomCommon::encrypt(json_encode($resData));
+
+        return CustomCommon::makeSuccRes([
+            'user' => $resData
+        ]);
     }
 
 
@@ -352,15 +416,21 @@ class UserController extends Controller
      */
     public function logout () {
 
-        Auth::logout();
-
         // 重置session
         session([
-            env('USER_SESSION_KEY') => [
+            config('custom.user_session_key') => [
                 'id' => null,
                 'timeout' => 0
             ]
         ]);
+
+        // 清除数据库字段
+        $user = Auth::user();
+        $user->login_timeout = 0;
+        $user->save();
+
+        // Auth登出
+        Auth::logout();
 
         return CustomCommon::makeSuccRes([
             'after' => route('indexPage')
@@ -369,7 +439,7 @@ class UserController extends Controller
 
     
     public function test () {
-        return session()->get(env('USER_SESSION_KEY'));
+        return session()->get(config('custom.user_session_key'));
     }
 
 }

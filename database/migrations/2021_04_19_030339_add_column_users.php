@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateLoginSt extends Migration
+class AddColumnUsers extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,8 @@ class CreateLoginSt extends Migration
      */
     public function up()
     {
-        // 登录成功后存储一个ST，供子系统验证使用
-        Schema::create('login_st', function (Blueprint $table) {
-            $table->text('st');
-            $table->bigInteger('ctime');
-            $table->integer('uid');
+        Schema::table('users', function (Blueprint $table) {
+            $table->bigInteger('login_timeout')->default(0);
         });
     }
 
@@ -28,6 +25,8 @@ class CreateLoginSt extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('login_st');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('login_timeout');
+        });
     }
 }
