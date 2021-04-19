@@ -390,7 +390,7 @@ class UserController extends Controller
         // 可用
 
         // 删除st
-        // LoginSt::where('st', $st)->delete();
+        LoginSt::where('st', $st)->delete();
 
         // 获取当前用户的登录超时时间，和id一起打包加密返回
         $userTimeout = User::where('id', $ins->uid)
