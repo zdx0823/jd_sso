@@ -45,7 +45,6 @@ class SessionInit
     public function handle(Request $request, Closure $next)
     {
         
-        var_dump(12121);
         $this->user();
         return $next($request);
 
