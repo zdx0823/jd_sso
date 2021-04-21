@@ -57,7 +57,7 @@
     @if ($msg) {
       <script>
         {{
-          "const sessionMsg = $msg"
+          "var sessionMsg = $msg"
         }}
       </script>
     @endif

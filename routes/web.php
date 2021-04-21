@@ -47,9 +47,6 @@ Route::prefix('/login')->group(function () {
 
   // 登录界面
   Route::get('/', 'StaticPageController@login')->name('loginPage');
-
-  // 登出
-  Route::post('/logout', 'UserController@logout')->name('logout');
   
   Route::middleware(['checkParams'])->group(function () {
     
@@ -62,9 +59,19 @@ Route::prefix('/login')->group(function () {
 });
 
 
-// 不需要前缀的路由
-Route::get('/captcha', 'UserController@captcha')->name('captcha');
+// 登出
+Route::prefix('/logout')->group(function () {
+
+  // 普通登出
+  Route::post('/', 'UserController@logout')->name('logout');
+  
+  Route::get('/sso', 'SessionController@ssoLogout')->name('logout');
+
+});
+
+
 Route::get('/', 'StaticPageController@indexPage')->name('indexPage');
+Route::get('/captcha', 'UserController@captcha')->name('captcha');
 Route::get('/test', 'UserController@test')->middleware('checkAuth');
 
 // 验证ST是否有效

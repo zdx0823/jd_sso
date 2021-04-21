@@ -5,7 +5,7 @@ require('./common')
 $(() => {
 
   // 是否有附带过来的消息
-  if (sessionMsg) {
+  if (window.sessionMsg) {
     util.toast(sessionMsg, 'danger')
   }
   

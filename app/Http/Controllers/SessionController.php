@@ -184,8 +184,9 @@ class SessionController extends Controller {
         $tgt = $ins->tgt;
         $tgtTimeout = $ins->timeout;
         $session_id = $request->session_id;
+        $logout_api = $request->logout_api;
 
-        UserTgt::create(compact('tgt', 'tgc', 'session_id'));
+        UserTgt::create(compact('tgt', 'tgc', 'session_id', 'logout_api'));
 
         // 删除st
         LoginSt::where('st', $st)->delete();
@@ -219,11 +220,10 @@ class SessionController extends Controller {
         foreach ($tgcList as $item) {
 
             $logoutApi = $item['logout_api'];
-            $tgc = $item['tgc'];
             $session_id = $item['session_id'];
 
             $res = CustomCommon::client('POST', $logoutApi, [
-                'form_params' => compact('tgc', 'session_id')
+                'form_params' => compact('session_id')
             ]);
 
             if ($res['status'] == -1) {
@@ -243,7 +243,7 @@ class SessionController extends Controller {
      * 4. 遍历tgc对应api，发起请求
      * 5. 重定向到首页
      */
-    public function logout (Request $request) {
+    public function ssoLogout (Request $request) {
 
         $tgt = UserTgt::where('tgc', $request->tgc)
             ->first()
@@ -254,6 +254,9 @@ class SessionController extends Controller {
             'dtime' => time()
         ]);
 
+        // 登出Auth
+        Auth::logout();
+
         // 取出所有tgt关联数据
         $tgcList = UserTgt::where('tgt', $tgt)->get()->toArray();
 
@@ -261,7 +264,7 @@ class SessionController extends Controller {
         UserTgt::where('tgt', $tgt)->delete();
 
         // 删除cookie的tgt
-        Cookie::queue('tgt', 'null', -99999);
+        Cookie::queue(Cookie::forget('tgt'));
 
         // 遍历发起请求
         $failList = self::doLogoutApi($tgcList);
@@ -272,6 +275,7 @@ class SessionController extends Controller {
         // 还有登不出的，返回提示语，让用户离开时关闭浏览器
         $msg = count($failList) > 0 ? self::S_LOGOUT_ERR : null;
 
+        // return CustomCommon::makeSuccRes(compact('msg'));
         return redirect()->route('indexPage')->with('msg', $msg);
     }
 
