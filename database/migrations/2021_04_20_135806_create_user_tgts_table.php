@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColumnUsers extends Migration
+class CreateUserTgtsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,11 @@ class AddColumnUsers extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->bigInteger('login_timeout')->default(0);
+        Schema::create('user_tgts', function (Blueprint $table) {
+            $table->text('tgt');
+            $table->text('tgc');
+            $table->string('session_id');
+            $table->bigInteger('dtime')->default(0);
         });
     }
 
@@ -25,8 +28,6 @@ class AddColumnUsers extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('login_timeout');
-        });
+        Schema::dropIfExists('user_tgts');
     }
 }

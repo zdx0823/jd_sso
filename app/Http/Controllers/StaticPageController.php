@@ -29,7 +29,7 @@ class StaticPageController extends Controller
 
     public function login (Request $request) {
 
-        $key = config('custom.user_session_key');
+        $key = config('custom.session.user');
         $data = session()->get($key);
         $data['prevServe'] = $request->serve == null 
             ? null

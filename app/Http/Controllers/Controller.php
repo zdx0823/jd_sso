@@ -15,12 +15,6 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    protected $captchaKeyList = [
-        'login' => 'captcha_login',
-        'passwordReset' => 'captcha_passwordRest',
-    ];
-
-
     // 生成验证码
     public static function buildCaptcha ($width = 100, $height = 40, $fn = null) {
 
@@ -62,13 +56,10 @@ class Controller extends BaseController
 
         $w = $request->w;
         $h = $request->h;
-        $captchaType = $request->captchaType;
+        $key = config('custom.session.captcha.'. $request->captchaType);
 
-        self::buildCaptcha($w, $h, function ($code) use ($captchaType) {
-            $key = $this->captchaKeyList[$captchaType];
-            session([
-                $key => $code
-            ]);
+        self::buildCaptcha($w, $h, function ($code) use ($key) {
+            session([ $key => $code ]);
         });
 
     }

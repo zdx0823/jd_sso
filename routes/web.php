@@ -54,7 +54,7 @@ Route::prefix('/login')->group(function () {
   Route::middleware(['checkParams'])->group(function () {
     
     // 提交登录请求
-    Route::post('/singIn', 'UserController@singIn')->name('singIn');
+    Route::post('/singIn', 'SessionController@singIn')->name('singIn');
 
   });
 
@@ -68,4 +68,17 @@ Route::get('/', 'StaticPageController@indexPage')->name('indexPage');
 Route::get('/test', 'UserController@test')->middleware('checkAuth');
 
 // 验证ST是否有效
-Route::post('/check_st', 'UserController@checkSt')->name('checkSt');
+Route::post('/check_st', 'SessionController@checkSt')->name('checkSt');
+
+
+// 获取用户信息
+Route::prefix('/info')->group(function () {
+
+  Route::middleware(['checkParams'])->group(function () {
+
+    Route::get('/', 'SessionController@userInfo')->name('getUserInfo');
+
+  });
+
+
+});

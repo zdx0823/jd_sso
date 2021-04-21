@@ -15,6 +15,7 @@ use App\Models\LoginSt;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 
 use App\Custom\Common\CustomCommon;
 
@@ -30,12 +31,11 @@ class UserController extends Controller
     const S_ROUTE_REGIEST_CONFIRM = 'regiestConfirm';
     const S_ROUTE_RESETPWD_CONFIRM = 'resetPwdConfirm';
     const S_RESET_PASS_ERR_SAME = '修改失败，新密码与原密码相同';
-    const S_ACCOUNT_ERR = '账号或密码错误，请重新输入';
-    const S_SIGNUP_SUCC = '登录成功';
     const S_SIGNIN_SUCC = '注册成功';
     const S_SIGNOUT_SUCC = '登出成功';
     const S_ST_ERR = 'st不存在或已失效';
-    const ST_LEN = 80; // bcrypt(xxx) 的长度是60，base64_encode(bcrypt(xxx)) 的长度是80
+    const ST_LEN = 96; // 见Customcommon::build_st
+    const S_LOGOUT_ERR = '部分网站登出失败，请您离开时关闭浏览器，确保登录信息被清除';
 
 
     /**
@@ -60,7 +60,7 @@ class UserController extends Controller
         if (isset($user)) {
             
             $tokenIns = RegiestToken::where('email', $email)->first();
-            $isTimeout = (time() - $tokenIns->ctime) < config('custom.regiest_token_timeout');
+            $isTimeout = (time() - $tokenIns->ctime) < config('custom.timeout.token.regiest');
             if ($isTimeout) {
                 return CustomCommon::makeErrRes(self::S_REGIEST_EMAIL_SENDED);
             }
@@ -131,7 +131,7 @@ class UserController extends Controller
         $resetIns = PasswordReset::where('email', $email)->first();
         if ($resetIns != null) {
 
-            $isTimeout = (time() - $resetIns->ctime) < config('custom.password_reset_timeout');
+            $isTimeout = (time() - $resetIns->ctime) < config('custom.timeout.token.password_reset');
             if ($isTimeout) return CustomCommon::makeErrRes(self::S_RESETPWD_EMAIL_SENDED);
 
         }
@@ -178,7 +178,7 @@ class UserController extends Controller
         }
 
         // 失效
-        $isTimeout = (time() - $tokenIns->ctime) > config('custom.regiest_token_timeout');
+        $isTimeout = (time() - $tokenIns->ctime) > config('custom.timeout.token.regiest');
         if ($isTimeout) {
             return view('email.tokenErr', ['msg' => self::S_TOKEN_TIMEOUT]);
         }
@@ -223,7 +223,7 @@ class UserController extends Controller
         }
 
         // 失效
-        $isTimeout = (time() - $tokenIns->ctime) > config('custom.password_reset_timeout');
+        $isTimeout = (time() - $tokenIns->ctime) > config('custom.timeout.token.password_reset');
         if ($isTimeout) {
             return view('email.tokenErr', ['msg' => self::S_TOKEN_TIMEOUT]);
         }
@@ -277,169 +277,130 @@ class UserController extends Controller
      */
     private static function setUserSession ($isRemember = false) {
 
-        $key = config('custom.user_session_key');
+        $key = config('custom.session.user');
         $userSession = session()->get($key);
 
         $userSession['id'] = Auth::user()->id;
         $userSession['timeout'] = $isRemember
-            ? time() + config('custom.login_timeout_remember')
-            : time() + config('custom.login_timeout_default');
+            ? time() + config('custom.timeout.login.remember')
+            : time() + config('custom.timeout.login.default');
 
         session([ $key => $userSession ]);
 
     }
 
 
-    /**
-     * 生成一个ST
-     */
-    private static function appendSt ($uid, $url) {
 
-        $st = base64_encode(bcrypt(random_bytes(20)));
-        LoginSt::create([
-            'uid' => $uid,
-            'st' => $st,
-            'ctime' => time()
-        ]);
+    // 获取登录用户的一些信息，如id，头像链接等
+    private function getUserInfo ($uid) {
 
-        return CustomCommon::appendQuery($url, compact('st'));
+        $user = User::find($uid);
+
+        $id = $user->id;
+        return compact('id');
+    
     }
 
 
-    // 登录逻辑
-    public function singIn (Request $request) {
+    /**
+     * 验证tgc是否还可用
+     */
+    public function checkTgc (Request $request) {
 
-        $email = $request->email;
-        $password = $request->password;
-        $captcha = strtolower($request->captcha);
-        $remember = boolval($request->remember);
+        $session_id = $request->session_id;
+        $tgc = $request->tgc;
 
-        // 验证码是否正确
-        $captchaKey = $this->captchaKeyList['login'];
-        $sessionCaptcha = strtolower(session($captchaKey));
-        if ($captcha !== $sessionCaptcha) {
-            return CustomCommon::makeErrRes(self::S_CAPTCHA_ERR);
-        }
+        $ins = UserTgt::where('tgc', $tgc)->first();
 
-        // 尝试登录
-        $res = Auth::attempt([
-            'email' => $email,
-            'password' => $password,
-            'actived' => 1
-        ]);
+        if ($ins == null) return CustomCommon::makeErrRes();
 
-        // 用户不存在
-        if (!$res) {
-            return CustomCommon::makeErrRes(self::S_ACCOUNT_ERR);
-        }
+        // 更新session_id
+        $ins->session_id = $session_id;
+        $ins->save();
 
-        // 更新数据库登录过期时间
-        $loginTimeout = $remember
-            ? time() + config('custom.login_timeout_remember')
-            : time() + config('custom.login_timeout_default');
+        return CustomCommon::makeSuccRes();
+    }
 
-        $user = Auth::user();
-        $user->login_timeout = $loginTimeout;
-        $user->save();
 
-        // 设置session
-        self::setUserSession($remember);
+    private function sendLogoutRequest ($logout_api, $session_id) {
 
-        // 是否需要跳转回原页面 buildSt
-        // 如果有，返回跳转链接，没有跳转到SSO的主页
-        $userSession = session()->get(
-            config('custom.user_session_key')
-        );
+        $data = CustomCommon::deJson('');
+        $client = new Client;
+        try {
+            
+            $clientRes = $client->request('POST', $logout_api, [
+                'form_params' => compact('session_id')
+            ]);
         
-        $prevServe = isset($userSession['prevServe'])
-            ? $userSession['prevServe']
-            : null;
+            $data = CustomCommon::deJson($clientRes->getBody());
+            
+        } catch (\Throwable $th) {}
 
-        $afterUrl = $prevServe !== null
-            ? self::appendSt(
-                Auth::user()->id,
-                $prevServe,
-            )
-            : route('indexPage');
-
-        return CustomCommon::makeSuccRes([
-            'after' => $afterUrl
-        ], self::S_SIGNUP_SUCC);
+        
+        return ($data['status'] == 1);
     }
 
 
-    /**
-     * 验证st是否有效
-     * 有效将删除数据库对应记录
-     * 返回json，正确返回的json包含该用户的id
-     */
-    public function checkSt (Request $request) {
+    private function eachRequest ($tgcList) {
 
-        // 获取前80位视为st
-        $st = substr($request->st, 0, self::ST_LEN);
+        $failRequest = [];
+        foreach ($tgcList as $item) {
+            
+            $logout_api = $item['logout_api'];
+            $session_id = $item['session_id'];
 
-        $ins = LoginSt::where('st', $st)->first();
+            if ($this->sendLogoutRequest($logout_api, $session_id) === false) {
+                array_push($failRequest, $item);
+            }
 
-        // 不存在
-        if ($ins == null) return CustomCommon::makeErrRes(self::S_ST_ERR);
+        }
 
-        // 超时
-        $isTimeout = (time() - $ins->ctime) > config('custom.st_timeout');
-        if ($isTimeout) return CustomCommon::makeErrRes(self::S_ST_ERR);
-
-        // 可用
-
-        // 删除st
-        LoginSt::where('st', $st)->delete();
-
-        // 获取当前用户的登录超时时间，和id一起打包加密返回
-        $userTimeout = User::where('id', $ins->uid)
-            ->select('login_timeout')
-            ->first()
-            ->toArray()['login_timeout'];
-
-        $resData = [
-            'id' => $ins->uid,
-            'timeout' => $userTimeout
-        ];
-
-        $resData = CustomCommon::encrypt(json_encode($resData));
-
-        return CustomCommon::makeSuccRes([
-            'user' => $resData
-        ]);
+        return $failRequest;
     }
 
 
     /**
      * 登出
      */
-    public function logout () {
+    public function logout (Request $request) {
 
-        // 重置session
-        session([
-            config('custom.user_session_key') => [
-                'id' => null,
-                'timeout' => 0
-            ]
-        ]);
+        $tgc = $request->tgc;
 
-        // 清除数据库字段
-        $user = Auth::user();
-        $user->login_timeout = 0;
-        $user->save();
+        // 找出该用户其他tgc
+        $tgt = UserTgt::where('tgc', $tgc)
+            ->first()
+            ->toArray()['tgt'];
+
+        $tgcList = UserTgt::where('tgt', $tgt)
+            ->get()
+            ->toArray();
+
+        // 删除这些tgc
+        UserTgt::where('tgt', $tgt)->delete();
+
+        // 遍历每一项，发起请求
+        $failRequest = $this->eachRequest($tgcList);
+
+        // 再试一遍失败的项
+        $tgcList = $failRequest;
+        $failRequest = $this->eachRequest($tgcList);
+
+        // 还有失败项，返回信息告知用户离开是关闭浏览器
+        $msg = (count($failRequest) > 0)
+            ? self::S_LOGOUT_ERR
+            : null;
 
         // Auth登出
         Auth::logout();
 
         return CustomCommon::makeSuccRes([
-            'after' => route('indexPage')
+            'after' => route('indexPage', compact('msg'))
         ], self::S_SIGNOUT_SUCC);
     }
 
     
     public function test () {
-        return session()->get(config('custom.user_session_key'));
+        return session()->get(config('custom.session.user'));
     }
 
 }
