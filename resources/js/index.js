@@ -4,6 +4,12 @@ require('./common')
 
 $(() => {
 
+  // 是否有附带过来的消息
+  if (sessionMsg) {
+    util.toast(sessionMsg, 'danger')
+  }
+  
+
   $('[jshook=logout]').on('click', () => {
     
     $.post('/login/logout', {}).then(res => {

@@ -146,6 +146,8 @@ class SingIn {
 class SessionController extends Controller {
     
     private const ST_LEN = 96;
+    private const S_LOGOUT_ERR = '部分网站登出失败，请您关闭浏览器清除登录信息';
+    private const S_CHECK_TGC_FAIL = '该用户已登出，请重新登录';
 
 
     // 登录
@@ -202,5 +204,96 @@ class SessionController extends Controller {
             'id' => 1
         ]);
 
+    }
+
+
+    /**
+     * 遍历发起请求，登出api
+     * 
+     * 返回失败的数组
+     */
+    private static function doLogoutApi ($tgcList) {
+
+        // 遍历发起请求
+        $failItem = [];
+        foreach ($tgcList as $item) {
+
+            $logoutApi = $item['logout_api'];
+            $tgc = $item['tgc'];
+            $session_id = $item['session_id'];
+
+            $res = CustomCommon::client('POST', $logoutApi, [
+                'form_params' => compact('tgc', 'session_id')
+            ]);
+
+            if ($res['status'] == -1) {
+                array_push($failItem, $item);
+            }
+        }
+
+        return $failItem;
+    }
+
+    
+    /**
+     * 登出
+     * 1. 软删除所有关联tgc
+     * 2. 取出所有tgc
+     * 3. 硬删除所有关联tgc
+     * 4. 遍历tgc对应api，发起请求
+     * 5. 重定向到首页
+     */
+    public function logout (Request $request) {
+
+        $tgt = UserTgt::where('tgc', $request->tgc)
+            ->first()
+            ->toArray()['tgt'];
+
+        // 软删除所有tgt
+        UserTgt::where('tgt', $tgt)->update([
+            'dtime' => time()
+        ]);
+
+        // 取出所有tgt关联数据
+        $tgcList = UserTgt::where('tgt', $tgt)->get()->toArray();
+
+        // 硬删除所有关联tgt
+        UserTgt::where('tgt', $tgt)->delete();
+
+        // 删除cookie的tgt
+        Cookie::queue('tgt', 'null', -99999);
+
+        // 遍历发起请求
+        $failList = self::doLogoutApi($tgcList);
+
+        // 对失败的再次请求一次
+        $failList = self::doLogoutApi($failList);
+
+        // 还有登不出的，返回提示语，让用户离开时关闭浏览器
+        $msg = count($failList) > 0 ? self::S_LOGOUT_ERR : null;
+
+        return redirect()->route('indexPage')->with('msg', $msg);
+    }
+
+    
+    /**
+     * 检查tgc是否有效，供子系统调用
+     * 1. 需求tgc, session_id
+     * 2. 是否存在数据库，dtime是否为0，是，更新session_id，否，不更新
+     */
+    public function checkTgc (Request $request) {
+
+        $tgc = $request->tgc;
+        $session_id = $request->session_id;
+
+        $num = UserTgt::where('tgc', $tgc)
+            ->where('dtime', 0)
+            ->update(compact('session_id'));
+
+        // 更新失败，返回
+        if ($num == 0) return Customcommon::makeErrRes();
+
+        // 更新成功
+        return CustomCommon::makeSuccRes(self::S_CHECK_TGC_FAIL);
     }
 }

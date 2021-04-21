@@ -70,6 +70,9 @@ Route::get('/test', 'UserController@test')->middleware('checkAuth');
 // 验证ST是否有效
 Route::post('/check_st', 'SessionController@checkSt')->name('checkSt');
 
+// 验证tgc是否有效
+Route::post('/check_tgc', 'SessionController@checkTgc')->middleware('checkParams')->name('checkTgc');
+
 
 // 获取用户信息
 Route::prefix('/info')->group(function () {

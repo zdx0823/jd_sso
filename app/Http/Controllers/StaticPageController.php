@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use Cookie;
+
 class StaticPageController extends Controller
 {
     public function __construct () {
@@ -44,6 +46,10 @@ class StaticPageController extends Controller
 
 
     public function indexPage (Request $request) {
-        return view('after');
+        
+        $msg = session('msg');
+
+        return view('index', compact('msg'));
+
     }
 }

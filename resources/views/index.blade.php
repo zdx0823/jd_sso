@@ -8,7 +8,7 @@
   @section('title', '未登录')
 
 @endif
-@section('js', '/js/after.js')
+@section('js', '/js/index.js')
 @section('content')
 
   {{-- 主体 --}}
@@ -53,6 +53,14 @@
         @endif
       </div>
     </div>
+
+    @if ($msg) {
+      <script>
+        {{
+          "const sessionMsg = $msg"
+        }}
+      </script>
+    @endif
 
   </div>
 
