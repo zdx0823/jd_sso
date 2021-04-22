@@ -16,6 +16,8 @@ class UserTgt extends Model
         'tgc',
         'session_id',
         'logout_api',
+        'uid',
+        'serve',
     ];
 
 }

@@ -42,13 +42,13 @@
         </div>
 
         <div class="mt-5 flex flex-row justify-around">
-          <a href="" class="text-blue-600 font-semibold text-xl hover:underline">云盘</a>
+          <a href="{{config('custom.away.clodedisk')}}" class="text-blue-600 font-semibold text-xl hover:underline">云盘</a>
           <a href="" class="text-blue-600 font-semibold text-xl hover:underline">商城首页</a>
         </div>
 
         @if (Auth::check())
           <div class="mt-5 flex flex-row justify-around">
-            <a href="javascript:;" class="text-blue-600 font-semibold text-xl hover:underline" jshook="logout">退出登录</a>
+            <a href="{{route('logout')}}" class="text-blue-600 font-semibold text-xl hover:underline">退出登录</a>
           </div>
         @endif
       </div>

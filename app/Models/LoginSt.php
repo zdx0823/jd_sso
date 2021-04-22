@@ -19,5 +19,6 @@ class LoginSt extends Model
         'uid',
         'tgt',
         'timeout',
+        'serve',
     ];
 }

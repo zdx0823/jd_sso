@@ -27,6 +27,16 @@ return [
     'user' => env('APP_NAME') . '_session_user_key'
   ],
 
+
+  // cookie名
+  'cookie' => [
+    'first_session' => env('APP_NAME') . '_tmp_first_session'
+  ],
+
   // 对称加密key
   'crypt_key' => env('CRYPT_KEY'),
+
+  'away' => [
+    'clodedisk' => env('AWAY_CLODEDISK')
+  ],
 ];

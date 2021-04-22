@@ -290,7 +290,6 @@ class UserController extends Controller
     }
 
 
-
     // 获取登录用户的一些信息，如id，头像链接等
     private function getUserInfo ($uid) {
 
@@ -301,106 +300,10 @@ class UserController extends Controller
     
     }
 
-
-    /**
-     * 验证tgc是否还可用
-     */
-    public function checkTgc (Request $request) {
-
-        $session_id = $request->session_id;
-        $tgc = $request->tgc;
-
-        $ins = UserTgt::where('tgc', $tgc)->first();
-
-        if ($ins == null) return CustomCommon::makeErrRes();
-
-        // 更新session_id
-        $ins->session_id = $session_id;
-        $ins->save();
-
-        return CustomCommon::makeSuccRes();
-    }
-
-
-    private function sendLogoutRequest ($logout_api, $session_id) {
-
-        $data = CustomCommon::deJson('');
-        $client = new Client;
-        try {
-            
-            $clientRes = $client->request('POST', $logout_api, [
-                'form_params' => compact('session_id')
-            ]);
-        
-            $data = CustomCommon::deJson($clientRes->getBody());
-            
-        } catch (\Throwable $th) {}
-
-        
-        return ($data['status'] == 1);
-    }
-
-
-    private function eachRequest ($tgcList) {
-
-        $failRequest = [];
-        foreach ($tgcList as $item) {
-            
-            $logout_api = $item['logout_api'];
-            $session_id = $item['session_id'];
-
-            if ($this->sendLogoutRequest($logout_api, $session_id) === false) {
-                array_push($failRequest, $item);
-            }
-
-        }
-
-        return $failRequest;
-    }
-
-
-    /**
-     * 登出
-     */
-    public function logout (Request $request) {
-
-        $tgc = $request->tgc;
-
-        // 找出该用户其他tgc
-        $tgt = UserTgt::where('tgc', $tgc)
-            ->first()
-            ->toArray()['tgt'];
-
-        $tgcList = UserTgt::where('tgt', $tgt)
-            ->get()
-            ->toArray();
-
-        // 删除这些tgc
-        UserTgt::where('tgt', $tgt)->delete();
-
-        // 遍历每一项，发起请求
-        $failRequest = $this->eachRequest($tgcList);
-
-        // 再试一遍失败的项
-        $tgcList = $failRequest;
-        $failRequest = $this->eachRequest($tgcList);
-
-        // 还有失败项，返回信息告知用户离开是关闭浏览器
-        $msg = (count($failRequest) > 0)
-            ? self::S_LOGOUT_ERR
-            : null;
-
-        // Auth登出
-        Auth::logout();
-
-        return CustomCommon::makeSuccRes([
-            'after' => route('indexPage', compact('msg'))
-        ], self::S_SIGNOUT_SUCC);
-    }
-
     
-    public function test () {
-        return session()->get(config('custom.session.user'));
+    public function test (Request $request) {
+
+        return CustomCommon::getUrlWithPort('http://localhost/www/aaa');
     }
 
 }

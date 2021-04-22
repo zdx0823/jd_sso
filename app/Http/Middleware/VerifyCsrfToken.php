@@ -13,6 +13,7 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         '/check_st',
+        '/check_tgc',
         '/logout/sso',
     ];
 }

@@ -11,136 +11,7 @@ use App\Models\LoginSt;
 use App\Models\UserTgt;
 
 use App\Custom\Common\CustomCommon;
-
-/**
- * 处理登录逻辑
- * 设计验证验证码，生成tgc，生成st等动作
- */
-class SingIn {
-
-    private const S_CAPTCHA_ERR = "验证码错误";
-    private const S_ACCOUNT_ERR = "账号或密码错误";
-    private const S_SIGNIN_SUCC = "登录成功";
-
-    /**
-     * 尝试登录
-     * 验证码错误，或登录失败返回提示语，成功返回true
-     */
-    private static function attemptLogin ($request) {
-
-        $email = $request->email;
-        $password = $request->password;
-        $captcha = strtolower($request->captcha);
-        $remember = boolval($request->remember);
-
-        // 验证码是否正确
-        $captchaKey = config('custom.session.captcha.login');
-        $sessionCaptcha = strtolower(session($captchaKey));
-        if ($captcha !== $sessionCaptcha) {
-            return self::S_CAPTCHA_ERR;
-        }
-
-        // 尝试登录
-        $res = Auth::attempt([
-            'email' => $email,
-            'password' => $password,
-            'actived' => 1
-        ]);
-
-        // 用户不存在
-        if (!$res) {
-            return self::S_ACCOUNT_ERR;
-        }
-
-        return true;
-    }
-
-
-    /**
-     * 生成Tgc并存入cookie
-     */
-    private static function generateTgc ($request) {
-
-        // 生成tgt
-        $tgt = CustomCommon::build_tgt();
-
-        // cookie过期时间
-        $cookieTimeout = $request->remember
-            ? intval(config('custom.timeout.login.remember'))
-            : intval(config('custom.timeout.login.default'));
-
-        // 分钟为单位
-        $cookieTimeout = intval($cookieTimeout / 60);
-
-        // tgt存入cookie
-        Cookie::queue('tgt', $tgt, $cookieTimeout);
-
-        return [
-            'tgt' => $tgt,
-            'timeout' => $cookieTimeout,
-        ];
-    }
-
-
-    /**
-     * 生成重定向的url，生成ST
-     */
-    private static function getRedirectUrl ($tgt, $timeout) {
-
-        $skey = config('custom.session.user');
-        $userSession = session()->get($skey);
-
-        if (isset($userSession['prevServe'])) {
-
-            $prevServe = $userSession['prevServe'];
-
-            // 取出id，生成st
-            $uid = Auth::user()->id;
-            $st = Customcommon::build_st();
-
-            // 存入数据库
-            LoginSt::create([
-                'uid' => $uid,
-                'st' => $st,
-                'tgt' => $tgt,
-                'ctime' => time(),
-                'timeout' => $timeout,
-            ]);
-    
-            // 拼接url
-            $afterUrl = CustomCommon::appendQuery($prevServe, compact('st'));
-
-        } else {
-
-            $afterUrl = route('indexPage');
-        }
-
-        return $afterUrl;
-    }
-
-
-    /**
-     * 尝试登录，生成tgc，生成重定向的url
-     * 返回Customcommon::makeSuccRes或Customcommon::makeErrRes的执行结果
-     */
-    public static function handle ($request) {
-
-        // 尝试登录，失败返回
-        $attemptRes = self::attemptLogin($request);
-        if ($attemptRes !== true) return CustomCommon::makeErrRes($attemptRes);;
-        
-        // 生成tgc
-        [
-            'tgt' => $tgt,
-            'timeout' => $timeout,
-        ] = self::generateTgc($request);
-
-        // 取得重定向链接
-        $after = self::getRedirectUrl($tgt, $timeout);
-
-        return CustomCommon::makeSuccRes(compact('after'), self::S_SIGNIN_SUCC);
-    }
-}
+use App\Custom\SingIn\SingIn;
 
 
 class SessionController extends Controller {
@@ -182,11 +53,20 @@ class SessionController extends Controller {
         // 生成TGC，和session_id一起存入数据库
         $tgc = Customcommon::build_tgc();
         $tgt = $ins->tgt;
+        $uid = $ins->uid;
+        $serve = $ins->serve;
         $tgtTimeout = $ins->timeout;
         $session_id = $request->session_id;
         $logout_api = $request->logout_api;
 
-        UserTgt::create(compact('tgt', 'tgc', 'session_id', 'logout_api'));
+        UserTgt::create(compact(
+            'tgt',
+            'tgc',
+            'session_id',
+            'logout_api',
+            'uid',
+            'serve',
+        ));
 
         // 删除st
         LoginSt::where('st', $st)->delete();
@@ -234,20 +114,22 @@ class SessionController extends Controller {
         return $failItem;
     }
 
-    
-    /**
-     * 登出
-     * 1. 软删除所有关联tgc
-     * 2. 取出所有tgc
-     * 3. 硬删除所有关联tgc
-     * 4. 遍历tgc对应api，发起请求
-     * 5. 重定向到首页
-     */
-    public function ssoLogout (Request $request) {
 
-        $tgt = UserTgt::where('tgc', $request->tgc)
+    /**
+     * 登出的逻辑
+     */
+    private static function doLogout ($keyType, $key) {
+
+        if ($keyType === 'tgc') {
+
+            $tgt = UserTgt::where('tgc', $key)
             ->first()
             ->toArray()['tgt'];
+        } else {
+
+            $tgt = $key;
+        }
+
 
         // 软删除所有tgt
         UserTgt::where('tgt', $tgt)->update([
@@ -275,8 +157,24 @@ class SessionController extends Controller {
         // 还有登不出的，返回提示语，让用户离开时关闭浏览器
         $msg = count($failList) > 0 ? self::S_LOGOUT_ERR : null;
 
-        // return CustomCommon::makeSuccRes(compact('msg'));
+        // 返回重定向页面
         return redirect()->route('indexPage')->with('msg', $msg);
+    }
+
+    
+    /**
+     * 登出
+     * 1. 软删除所有关联tgc
+     * 2. 取出所有tgc
+     * 3. 硬删除所有关联tgc
+     * 4. 遍历tgc对应api，发起请求
+     * 5. 重定向到首页
+     */
+    public function ssoLogout (Request $request) {
+
+        $tgc = $request->tgc;
+        return self::doLogout('tgc', $tgc);
+
     }
 
     
@@ -299,5 +197,17 @@ class SessionController extends Controller {
 
         // 更新成功
         return CustomCommon::makeSuccRes(self::S_CHECK_TGC_FAIL);
+    }
+
+
+    /**
+     * 登出
+     * 给SSO自己使用
+     */
+    public function logout (Request $request) {
+
+        $tgt = Cookie::get('tgt');
+        return self::doLogout('tgt', $tgt);
+
     }
 }

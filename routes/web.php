@@ -4,7 +4,7 @@
 Route::prefix('/regiest')->group(function () {
 
   // 注册页面
-  Route::get('/', 'StaticPageController@regiest')->name('regiestPage');
+  Route::get('/', 'StaticPageController@regiest')->middleware(['refreshAuth'])->name('regiestPage');
 
   // 中间件验证
   Route::middleware(['checkParams'])->group(function () {
@@ -46,7 +46,9 @@ Route::prefix('/password')->group(function () {
 Route::prefix('/login')->group(function () {
 
   // 登录界面
-  Route::get('/', 'StaticPageController@login')->name('loginPage');
+  Route::get('/', 'StaticPageController@login')
+    ->middleware(['refreshAuth', 'isLogged'])
+    ->name('loginPage');
   
   Route::middleware(['checkParams'])->group(function () {
     
@@ -63,16 +65,16 @@ Route::prefix('/login')->group(function () {
 Route::prefix('/logout')->group(function () {
 
   // 普通登出
-  Route::post('/', 'UserController@logout')->name('logout');
+  Route::get('/', 'SessionController@logout')->name('logout');
   
-  Route::get('/sso', 'SessionController@ssoLogout')->name('logout');
+  Route::get('/sso', 'SessionController@ssoLogout')->name('ssoLogout');
 
 });
 
 
-Route::get('/', 'StaticPageController@indexPage')->name('indexPage');
+Route::get('/', 'StaticPageController@indexPage')->middleware(['refreshAuth'])->name('indexPage');
 Route::get('/captcha', 'UserController@captcha')->name('captcha');
-Route::get('/test', 'UserController@test')->middleware('checkAuth');
+Route::get('/test', 'UserController@test');
 
 // 验证ST是否有效
 Route::post('/check_st', 'SessionController@checkSt')->name('checkSt');
