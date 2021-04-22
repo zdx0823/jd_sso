@@ -303,7 +303,7 @@ class UserController extends Controller
     
     public function test (Request $request) {
 
-        return CustomCommon::getUrlWithPort('http://localhost/www/aaa');
+        return '测试';
     }
 
 }
