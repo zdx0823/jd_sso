@@ -195,6 +195,20 @@ class CheckParams
 
     }
 
+
+    private function getUserInfo ($request) {
+
+        $validateData = $request->input();
+
+        $res = Validator::make($validateData, [
+            'tgc' => 'required',
+        ]);
+
+        if ($res->fails() !== false) return $this->makeErrRes($res);
+
+        return true;
+    }
+
     
     /**
      * 检索出路由名，路由名即此类的方法名，如果返回非true值就是参数错误
@@ -207,6 +221,9 @@ class CheckParams
     public function handle(Request $request, Closure $next)
     {
         $routeName = $request->route()->getName();
+
+        if (!method_exists($this, $routeName)) return $next($request);
+
         $res = $this->$routeName($request);
         if ($res !== true) {
             return response()->json($res);

@@ -9,6 +9,7 @@ use Cookie;
 
 use App\Models\LoginSt;
 use App\Models\UserTgt;
+use App\Models\User;
 
 use App\Custom\Common\CustomCommon;
 use App\Custom\SingIn\SingIn;
@@ -81,8 +82,19 @@ class SessionController extends Controller {
 
     public function userInfo (Request $request) {
 
+        $tgc = $request->tgc;
+
+        // 查用户id
+        $uid = UserTgt::where('tgc', $tgc)
+            ->where('dtime', 0)
+            ->first()->uid;
+
+        // 查用户模型
+        $user = User::find($uid);
+
         return CustomCommon::makeSuccRes([
-            'id' => 1
+            'id' => $user->id,
+            'username' => $user->username
         ]);
 
     }
