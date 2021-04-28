@@ -94,7 +94,8 @@ class SessionController extends Controller {
 
         return CustomCommon::makeSuccRes([
             'id' => $user->id,
-            'username' => $user->username
+            'username' => $user->username,
+            'email' => $user->email,
         ]);
 
     }
