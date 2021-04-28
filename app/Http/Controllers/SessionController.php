@@ -20,6 +20,7 @@ class SessionController extends Controller {
     private const ST_LEN = 96;
     private const S_LOGOUT_ERR = '部分网站登出失败，请您关闭浏览器清除登录信息';
     private const S_CHECK_TGC_FAIL = '该用户已登出，请重新登录';
+    private const S_CHECK_TGC_SUCC = '该用户已登录，验证成功';
 
 
     // 登录
@@ -201,15 +202,14 @@ class SessionController extends Controller {
         $tgc = $request->tgc;
         $session_id = $request->session_id;
 
+        // 更新session_id
         $num = UserTgt::where('tgc', $tgc)
             ->where('dtime', 0)
             ->update(compact('session_id'));
 
-        // 更新失败，返回
-        if ($num == 0) return Customcommon::makeErrRes();
 
         // 更新成功
-        return CustomCommon::makeSuccRes(self::S_CHECK_TGC_FAIL);
+        return CustomCommon::makeSuccRes([], self::S_CHECK_TGC_SUCC);
     }
 
 
