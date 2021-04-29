@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use DB;
 
 class UserSeeder extends Seeder
 {
@@ -20,6 +21,17 @@ class UserSeeder extends Seeder
                 'ctime' => time(),
                 'mtime' => time()
             ]);
+
+        $extendData = [];
+        foreach ($users as $item) {
+            array_push($extendData, [
+                'uid' => $item->id,
+                'level' => 1,
+            ]);
+        }
+
+        DB::table('user_extends')->insert($extendData);
+        DB::table('user_extends')->where('uid', 1)->update(['level' => 10]);
 
         $user = $users->find(1);
 

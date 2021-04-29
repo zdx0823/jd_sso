@@ -43,4 +43,8 @@ class User extends Authenticatable
     // public function getIsActivedAttribute () {
     //     return $this->email_verified_at > 0;
     // }
+
+    public function extendInfo () {
+        return $this->hasOne('App\Models\UserExtend', 'uid');
+    }
 }

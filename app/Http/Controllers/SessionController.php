@@ -97,6 +97,7 @@ class SessionController extends Controller {
             'id' => $user->id,
             'username' => $user->username,
             'email' => $user->email,
+            'isAdmin' => $user->extendInfo->isAdmin,
         ]);
 
     }
@@ -202,8 +203,14 @@ class SessionController extends Controller {
         $tgc = $request->tgc;
         $session_id = $request->session_id;
 
+        // tgc不可用，返回
+        $ins = UserTgt::where('tgc', $tgc)->where('dtime', 0)->first();
+
+        if ($ins == null) return CustomCommon::makeErrRes(self::S_CHECK_TGC_FAIL);
+
         // 更新session_id
-        $num = UserTgt::where('tgc', $tgc)
+        // 为避免更新到已经被软删除的值，这里不使用$ins->save方式更新
+        UserTgt::where('tgc', $tgc)
             ->where('dtime', 0)
             ->update(compact('session_id'));
 
