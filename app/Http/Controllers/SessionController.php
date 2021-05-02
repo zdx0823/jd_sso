@@ -98,6 +98,7 @@ class SessionController extends Controller {
             'username' => $user->username,
             'email' => $user->email,
             'isAdmin' => $user->extendInfo->isAdmin,
+            'type' => $user->extendInfo->type,
         ]);
 
     }

@@ -15,7 +15,7 @@ class UserExtend extends Model
     public $timestamps = false;
 
     // 自定义字段
-    protected $appends = ['isAdmin'];
+    protected $appends = ['isAdmin', 'type'];
 
     // 访问器
     public function getIsAdminAttribute () {
@@ -23,6 +23,26 @@ class UserExtend extends Model
         return $this->level === self::ADMIN_LEVEL;
     }
 
+    public function getTypeAttribute () {
+
+        switch ($this->level) {
+            case 1:
+                $res = 'normal';
+                break;
+            case 3:
+                $res = 'seller';
+                break;
+            case 10:
+                $res = 'admin';
+                break;
+            
+            default:
+                $res = 'disable';
+                break;
+        }
+
+        return $res;
+    }
     
     public function user () {
         return $this->belongsTo('App\Models\User', 'uid');
